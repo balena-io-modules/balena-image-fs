@@ -106,8 +106,11 @@ exports.createDriverFromFile = function(file, offset, size) {
  * @protected
  * @function
  *
+ * @description
+ * If no partition definition is passed, an hddimg partition file is assumed.
+ *
  * @param {String} image - image path
- * @param {Object} definition - partition definition
+ * @param {Object} [definition] - partition definition
  *
  * @returns {Promise<Object>} filesystem object
  *
@@ -118,7 +121,17 @@ exports.createDriverFromFile = function(file, offset, size) {
  */
 
 exports.interact = function(image, definition) {
-  return partitioninfo.get(image, definition).then(function(information) {
+  return Promise["try"](function() {
+    if (definition != null) {
+      return partitioninfo.get(image, definition);
+    }
+    return fs.statAsync(image).get('size').then(function(size) {
+      return {
+        offset: 0,
+        size: size
+      };
+    });
+  }).then(function(information) {
     return exports.createDriverFromFile(image, information.offset, information.size);
   });
 };

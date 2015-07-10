@@ -87,8 +87,11 @@ exports.createDriverFromFile = (file, offset, size) ->
 # @protected
 # @function
 #
+# @description
+# If no partition definition is passed, an hddimg partition file is assumed.
+#
 # @param {String} image - image path
-# @param {Object} definition - partition definition
+# @param {Object} [definition] - partition definition
 #
 # @returns {Promise<Object>} filesystem object
 #
@@ -98,5 +101,12 @@ exports.createDriverFromFile = (file, offset, size) ->
 # 		console.log(files)
 ###
 exports.interact = (image, definition) ->
-	partitioninfo.get(image, definition).then (information) ->
+	Promise.try ->
+		return partitioninfo.get(image, definition) if definition?
+
+		# Handle partition files (*.hddimg)
+		return fs.statAsync(image).get('size').then (size) ->
+			return { offset: 0, size: size }
+
+	.then (information) ->
 		return exports.createDriverFromFile(image, information.offset, information.size)
