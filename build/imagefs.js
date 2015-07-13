@@ -26,7 +26,11 @@ THE SOFTWARE.
 /**
  * @module imagefs
  */
-var devicePath, driver;
+var Promise, devicePath, driver, fs;
+
+Promise = require('bluebird');
+
+fs = require('fs');
 
 devicePath = require('resin-device-path');
 
@@ -49,8 +53,13 @@ driver = require('./driver');
 exports.read = function(definition) {
   var pathDefinition;
   pathDefinition = devicePath.parsePath(definition);
-  return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
-    return fat.createReadStream(pathDefinition.file);
+  return Promise["try"](function() {
+    if (pathDefinition.partition == null) {
+      return fs;
+    }
+    return driver.interact(pathDefinition.input.path, pathDefinition.partition);
+  }).then(function(filesystem) {
+    return filesystem.createReadStream(pathDefinition.file);
   });
 };
 
@@ -71,8 +80,13 @@ exports.read = function(definition) {
 exports.write = function(definition, stream) {
   var pathDefinition;
   pathDefinition = devicePath.parsePath(definition);
-  return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
-    return stream.pipe(fat.createWriteStream(pathDefinition.file));
+  return Promise["try"](function() {
+    if (pathDefinition.partition == null) {
+      return fs;
+    }
+    return driver.interact(pathDefinition.input.path, pathDefinition.partition);
+  }).then(function(filesystem) {
+    return stream.pipe(filesystem.createWriteStream(pathDefinition.file));
   });
 };
 
