@@ -13,6 +13,8 @@ environment:
 
 install:
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  - npm -g install npm@2.12.1
+  - set PATH=%APPDATA%\npm;%PATH%
   - npm install -g gulp
   - npm install
 
@@ -21,5 +23,5 @@ build: off
 test_script:
   - node --version
   - npm --version
-  - ps: gulp test
-  - cmd: gulp test
+  - ps: npm test
+  - cmd: npm test

@@ -9,7 +9,7 @@ OPTIONS =
 	config:
 		coffeelint: path.join(__dirname, 'coffeelint.json')
 	files:
-		coffee: [ 'lib/**/*.coffee', 'tests/**/*.spec.coffee', 'gulpfile.coffee' ]
+		coffee: [ 'lib/**/*.coffee', 'tests/**/*.coffee', 'gulpfile.coffee' ]
 		app: 'lib/**/*.coffee'
 		tests: 'tests/**/*.spec.coffee'
 

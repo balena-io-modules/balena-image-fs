@@ -26,6 +26,8 @@ THE SOFTWARE.
 # @module imagefs
 ###
 
+Promise = require('bluebird')
+fs = require('fs')
 devicePath = require('resin-device-path')
 driver = require('./driver')
 
@@ -44,8 +46,11 @@ driver = require('./driver')
 exports.read = (definition) ->
 	pathDefinition = devicePath.parsePath(definition)
 
-	driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
-		return fat.createReadStream(pathDefinition.file)
+	Promise.try ->
+		return fs if not pathDefinition.input?
+		driver.interact(pathDefinition.input.path, pathDefinition.partition)
+	.then (filesystem) ->
+		return filesystem.createReadStream(pathDefinition.file)
 
 ###*
 # @summary Write to a device file
@@ -63,7 +68,12 @@ exports.write = (definition, stream) ->
 	pathDefinition = devicePath.parsePath(definition)
 
 	driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
-		return stream.pipe(fat.createWriteStream(pathDefinition.file))
+
+		# "touch" the file before writing to it to make sure it exists
+		# otherwise, the write operation is ignored and no error is thrown.
+		fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then ->
+
+			return stream.pipe(fat.createWriteStream(pathDefinition.file))
 
 ###*
 # @summary Copy a device file
