@@ -67,13 +67,18 @@ exports.read = (definition) ->
 exports.write = (definition, stream) ->
 	pathDefinition = devicePath.parsePath(definition)
 
-	driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
+	Promise.try ->
+		return fs if not pathDefinition.input?
+		driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
 
-		# "touch" the file before writing to it to make sure it exists
-		# otherwise, the write operation is ignored and no error is thrown.
-		fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then ->
+			# "touch" the file before writing to it to make sure it exists
+			# otherwise, the write operation is ignored and no error is thrown.
+			fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then ->
 
-			return stream.pipe(fat.createWriteStream(pathDefinition.file))
+				return fat
+
+	.then (filesystem) ->
+		return stream.pipe(filesystem.createWriteStream(pathDefinition.file))
 
 ###*
 # @summary Copy a device file
