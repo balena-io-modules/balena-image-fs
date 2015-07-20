@@ -80,7 +80,7 @@ exports.createDriverFromFile = (file, offset, size) ->
 		Promise.fromNode (callback) ->
 			fat.on('error', callback)
 			fat.on 'ready', ->
-				return callback(null, fat)
+				return callback(null, Promise.promisifyAll(fat))
 
 ###*
 # @summary Get a fs instance pointing to a FAT partition

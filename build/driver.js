@@ -94,7 +94,7 @@ exports.createDriverFromFile = function(file, offset, size) {
     return Promise.fromNode(function(callback) {
       fat.on('error', callback);
       return fat.on('ready', function() {
-        return callback(null, fat);
+        return callback(null, Promise.promisifyAll(fat));
       });
     });
   });
