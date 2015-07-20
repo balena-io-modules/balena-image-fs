@@ -80,10 +80,17 @@ exports.read = function(definition) {
 exports.write = function(definition, stream) {
   var pathDefinition;
   pathDefinition = devicePath.parsePath(definition);
-  return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
-    return fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then(function() {
-      return stream.pipe(fat.createWriteStream(pathDefinition.file));
+  return Promise["try"](function() {
+    if (pathDefinition.input == null) {
+      return fs;
+    }
+    return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
+      return fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then(function() {
+        return fat;
+      });
     });
+  }).then(function(filesystem) {
+    return stream.pipe(filesystem.createWriteStream(pathDefinition.file));
   });
 };
 
