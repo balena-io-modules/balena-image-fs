@@ -7,12 +7,12 @@ path = require('path')
 
 images =
 	raspberrypi: path.join(__dirname, 'images', 'raspberrypi.img')
-	edison: path.join(__dirname, 'images', 'resin-edison-edison.hddimg')
+	edison: path.join(__dirname, 'images', 'edison-config.img')
 	lorem: path.join(__dirname, 'images', 'lorem.txt')
 
 temporals =
 	raspberrypi: path.join(__dirname, 'images', 'raspberrypi.img.tmp')
-	edison: path.join(__dirname, 'images', 'resin-edison-edison.hddimg.tmp')
+	edison: path.join(__dirname, 'images', 'edison-config.img.tmp')
 	lorem: path.join(__dirname, 'images', 'lorem.txt.tmp')
 
 scenarios = []
