@@ -26,11 +26,7 @@ THE SOFTWARE.
 /**
  * @module imagefs
  */
-var Promise, devicePath, driver, fs;
-
-Promise = require('bluebird');
-
-fs = require('fs');
+var devicePath, driver;
 
 devicePath = require('resin-device-path');
 
@@ -53,13 +49,8 @@ driver = require('./driver');
 exports.read = function(definition) {
   var pathDefinition;
   pathDefinition = devicePath.parsePath(definition);
-  return Promise["try"](function() {
-    if (pathDefinition.input == null) {
-      return fs;
-    }
-    return driver.interact(pathDefinition.input.path, pathDefinition.partition);
-  }).then(function(filesystem) {
-    return filesystem.createReadStream(pathDefinition.file);
+  return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
+    return fat.createReadStream(pathDefinition.file);
   });
 };
 
@@ -80,17 +71,10 @@ exports.read = function(definition) {
 exports.write = function(definition, stream) {
   var pathDefinition;
   pathDefinition = devicePath.parsePath(definition);
-  return Promise["try"](function() {
-    if (pathDefinition.input == null) {
-      return fs;
-    }
-    return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
-      return fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then(function() {
-        return fat;
-      });
+  return driver.interact(pathDefinition.input.path, pathDefinition.partition).then(function(fat) {
+    return fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then(function() {
+      return stream.pipe(fat.createWriteStream(pathDefinition.file));
     });
-  }).then(function(filesystem) {
-    return stream.pipe(filesystem.createWriteStream(pathDefinition.file));
   });
 };
 

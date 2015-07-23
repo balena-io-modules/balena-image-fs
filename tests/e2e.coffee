@@ -68,24 +68,28 @@ scenario.add 'it should replace files between different partitions in a raspberr
 			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 
 scenario.add 'it should copy a local file to a raspberry pi partition', ->
-	input = @lorem
+	inputStream = fs.createReadStream(@lorem)
 	output = "#{@raspberrypi}(4:1):/lorem.txt"
-	imagefs.copy(input, output).then(waitStream).then ->
+	imagefs.write(output, inputStream).then(waitStream).then ->
 		imagefs.read(output).then(extract).then (contents) ->
 			scenario.assert(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 
 scenario.add 'it should copy a file from a raspberry pi partition to a local file', ->
 	input = "#{@raspberrypi}(1):/cmdline.txt"
 	output = path.join(__dirname, 'output.tmp')
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
-			fs.unlinkAsync(output)
+
+	imagefs.read(input).then (inputStream) ->
+		return inputStream.pipe(fs.createWriteStream(output))
+	.then(waitStream).then ->
+		fs.createReadStream(output)
+	.then(extract).then (contents) ->
+		scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+		fs.unlinkAsync(output)
 
 scenario.add 'it should replace a file in an edison config partition with a local file', ->
-	input = @lorem
+	inputStream = fs.createReadStream(@lorem)
 	output = "#{@edison}:/config.json"
-	imagefs.copy(input, output).then(waitStream).then ->
+	imagefs.write(output, inputStream).then(waitStream).then ->
 		imagefs.read(output).then(extract).then (contents) ->
 			scenario.assert(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 
@@ -104,9 +108,9 @@ scenario.add 'it should copy a file from a raspberry pi to an edison config part
 			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 
 scenario.add 'it should copy a local file to an edison config partition', ->
-	input = @lorem
+	inputStream = fs.createReadStream(@lorem)
 	output = "#{@edison}:/lorem.txt"
-	imagefs.copy(input, output).then(waitStream).then ->
+	imagefs.write(output, inputStream).then(waitStream).then ->
 		imagefs.read(output).then(extract).then (contents) ->
 			scenario.assert(contents, 'Lorem ipsum dolor sit amet\n')
 
@@ -118,10 +122,14 @@ scenario.add 'it should read a config.json from a edison config partition', ->
 scenario.add 'it should copy a file from a edison config partition to a local file', ->
 	input = "#{@edison}:/config.json"
 	output = path.join(__dirname, 'output.tmp')
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(JSON.parse(contents), EDISON_CONFIG_JSON)
-			fs.unlinkAsync(output)
+
+	imagefs.read(input).then (inputStream) ->
+		return inputStream.pipe(fs.createWriteStream(output))
+	.then(waitStream).then ->
+		fs.createReadStream(output)
+	.then(extract).then (contents) ->
+		scenario.assert(JSON.parse(contents), EDISON_CONFIG_JSON)
+		fs.unlinkAsync(output)
 
 scenario.run().catch (error) ->
 	console.error(error, error.stack)
