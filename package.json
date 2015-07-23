@@ -43,7 +43,6 @@
     "fatfs": "^0.10.3",
     "lodash": "^3.10.0",
     "mbr": "^0.4.4",
-    "partitioninfo": "^1.0.0",
-    "resin-device-path": "^2.1.1"
+    "partitioninfo": "^1.0.0"
   }
 }

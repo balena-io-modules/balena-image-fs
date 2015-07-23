@@ -26,7 +26,6 @@ THE SOFTWARE.
 # @module imagefs
 ###
 
-devicePath = require('resin-device-path')
 driver = require('./driver')
 
 ###*
@@ -34,53 +33,86 @@ driver = require('./driver')
 # @function
 # @public
 #
-# @param {String} definition - device path definition
+# @param {Object} definition - device path definition
+# @param {String} definition.image - path to the image
+# @param {Object} [definition.partition] - partition definition
+# @param {String} definition.path - file path
+#
 # @returns {Promise<ReadStream>} file stream
 #
 # @example
-# imagefs.read('/foo/bar.img(4:1):/baz/qux').then (stream) ->
-#		stream.pipe(fs.createWriteStream('/bar/qux'))
+# imagefs.read
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 4
+# 		logical: 1
+# 	path: '/baz/qux'
+# .then (stream) ->
+# 	stream.pipe(fs.createWriteStream('/bar/qux'))
 ###
 exports.read = (definition) ->
-	pathDefinition = devicePath.parsePath(definition)
-	driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
-		return fat.createReadStream(pathDefinition.file)
+	driver.interact(definition.image, definition.partition).then (fat) ->
+		return fat.createReadStream(definition.path)
 
 ###*
 # @summary Write to a device file
 # @function
 # @public
 #
-# @param {String} definition - device path definition
+# @param {Object} definition - device path definition
+# @param {String} definition.image - path to the image
+# @param {Object} [definition.partition] - partition definition
+# @param {String} definition.path - file path
+#
 # @param {ReadStream} stream - contents stream
 # @returns {Promise}
 #
 # @example
-# imagefs.write('/foo/bar.img(2):/baz/qux', fs.createReadStream('/baz/qux'))
+# imagefs.write
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 2
+# 	path: '/baz/qux'
+# , fs.createReadStream('/baz/qux')
 ###
 exports.write = (definition, stream) ->
-	pathDefinition = devicePath.parsePath(definition)
-
-	driver.interact(pathDefinition.input.path, pathDefinition.partition).then (fat) ->
+	driver.interact(definition.image, definition.partition).then (fat) ->
 
 		# "touch" the file before writing to it to make sure it exists
 		# otherwise, the write operation is ignored and no error is thrown.
-		fat.openAsync(pathDefinition.file, 'w').then(fat.closeAsync).then ->
+		fat.openAsync(definition.path, 'w').then(fat.closeAsync).then ->
 
-			return stream.pipe(fat.createWriteStream(pathDefinition.file))
+			return stream.pipe(fat.createWriteStream(definition.path))
 
 ###*
 # @summary Copy a device file
 # @function
 # @public
 #
-# @param {String} input - input device type definition
-# @param {String} output - output device type definition
+# @param {Object} input - input device path definition
+# @param {String} input.image - path to the image
+# @param {Object} [input.partition] - partition definition
+# @param {String} input.path - file path
+#
+# @param {Object} output - output device path definition
+# @param {String} output.image - path to the image
+# @param {Object} [output.partition] - partition definition
+# @param {String} output.path - file path
 #
 # @returns {Promise}
 #
 # @example
-# imagefs.copy('/foo/bar.img(2):/baz/qux', '/foo/bar.img(4:1):/baz/hello')
+# imagefs.copy
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 2
+# 	path: '/baz/qux'
+# ,
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 4
+# 		logical: 1
+# 	path: '/baz/hello'
 ###
 exports.copy = (input, output) ->
 	exports.read(input).then (stream) ->

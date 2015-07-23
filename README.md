@@ -42,12 +42,21 @@ Documentation
 
 | Param | Type | Description |
 | --- | --- | --- |
-| definition | <code>String</code> | device path definition |
+| definition | <code>Object</code> | device path definition |
+| definition.image | <code>String</code> | path to the image |
+| [definition.partition] | <code>Object</code> | partition definition |
+| definition.path | <code>String</code> | file path |
 
 **Example**  
 ```js
-imagefs.read('/foo/bar.img(4:1):/baz/qux').then (stream) ->
-		stream.pipe(fs.createWriteStream('/bar/qux'))
+imagefs.read
+	image: '/foo/bar.img'
+	partition:
+		primary: 4
+		logical: 1
+	path: '/baz/qux'
+.then (stream) ->
+	stream.pipe(fs.createWriteStream('/bar/qux'))
 ```
 <a name="module_imagefs.write"></a>
 ### imagefs.write(definition, stream) ⇒ <code>Promise</code>
@@ -57,12 +66,20 @@ imagefs.read('/foo/bar.img(4:1):/baz/qux').then (stream) ->
 
 | Param | Type | Description |
 | --- | --- | --- |
-| definition | <code>String</code> | device path definition |
+| definition | <code>Object</code> | device path definition |
+| definition.image | <code>String</code> | path to the image |
+| [definition.partition] | <code>Object</code> | partition definition |
+| definition.path | <code>String</code> | file path |
 | stream | <code>ReadStream</code> | contents stream |
 
 **Example**  
 ```js
-imagefs.write('/foo/bar.img(2):/baz/qux', fs.createReadStream('/baz/qux'))
+imagefs.write
+	image: '/foo/bar.img'
+	partition:
+		primary: 2
+	path: '/baz/qux'
+, fs.createReadStream('/baz/qux')
 ```
 <a name="module_imagefs.copy"></a>
 ### imagefs.copy(input, output) ⇒ <code>Promise</code>
@@ -72,12 +89,28 @@ imagefs.write('/foo/bar.img(2):/baz/qux', fs.createReadStream('/baz/qux'))
 
 | Param | Type | Description |
 | --- | --- | --- |
-| input | <code>String</code> | input device type definition |
-| output | <code>String</code> | output device type definition |
+| input | <code>Object</code> | input device path definition |
+| input.image | <code>String</code> | path to the image |
+| [input.partition] | <code>Object</code> | partition definition |
+| input.path | <code>String</code> | file path |
+| output | <code>Object</code> | output device path definition |
+| output.image | <code>String</code> | path to the image |
+| [output.partition] | <code>Object</code> | partition definition |
+| output.path | <code>String</code> | file path |
 
 **Example**  
 ```js
-imagefs.copy('/foo/bar.img(2):/baz/qux', '/foo/bar.img(4:1):/baz/hello')
+imagefs.copy
+	image: '/foo/bar.img'
+	partition:
+		primary: 2
+	path: '/baz/qux'
+,
+	image: '/foo/bar.img'
+	partition:
+		primary: 4
+		logical: 1
+	path: '/baz/hello'
 ```
 
 Support
