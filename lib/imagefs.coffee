@@ -65,7 +65,7 @@ exports.read = (definition) ->
 # @param {String} definition.path - file path
 #
 # @param {ReadStream} stream - contents stream
-# @returns {Promise}
+# @returns {Promise<WriteStream>}
 #
 # @example
 # imagefs.write
@@ -99,7 +99,7 @@ exports.write = (definition, stream) ->
 # @param {Object} [output.partition] - partition definition
 # @param {String} output.path - file path
 #
-# @returns {Promise}
+# @returns {Promise<WriteStream>}
 #
 # @example
 # imagefs.copy
