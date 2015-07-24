@@ -30,8 +30,8 @@ Documentation
 
 * [imagefs](#module_imagefs)
   * [.read(definition)](#module_imagefs.read) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
-  * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise</code>
-  * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise</code>
+  * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+  * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 
 <a name="module_imagefs.read"></a>
 ### imagefs.read(definition) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
@@ -59,7 +59,7 @@ imagefs.read
 	stream.pipe(fs.createWriteStream('/bar/qux'))
 ```
 <a name="module_imagefs.write"></a>
-### imagefs.write(definition, stream) ⇒ <code>Promise</code>
+### imagefs.write(definition, stream) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Write to a device file  
 **Access:** public  
@@ -82,7 +82,7 @@ imagefs.write
 , fs.createReadStream('/baz/qux')
 ```
 <a name="module_imagefs.copy"></a>
-### imagefs.copy(input, output) ⇒ <code>Promise</code>
+### imagefs.copy(input, output) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Copy a device file  
 **Access:** public  
