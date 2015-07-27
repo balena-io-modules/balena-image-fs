@@ -77,12 +77,7 @@ exports.read = (definition) ->
 ###
 exports.write = (definition, stream) ->
 	driver.interact(definition.image, definition.partition).then (fat) ->
-
-		# "touch" the file before writing to it to make sure it exists
-		# otherwise, the write operation is ignored and no error is thrown.
-		fat.openAsync(definition.path, 'w').then(fat.closeAsync).then ->
-
-			return stream.pipe(fat.createWriteStream(definition.path))
+		return stream.pipe(fat.createWriteStream(definition.path))
 
 ###*
 # @summary Copy a device file
