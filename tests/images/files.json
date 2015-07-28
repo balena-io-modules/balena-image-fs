@@ -1,0 +1,37 @@
+{
+	"raspberrypi": {
+		"config.json": {
+			"applicationId": "1503",
+			"apiKey": "osMIXH0Yxk5dBQlN7qdB0Q3Lh5yNnvHX",
+			"userId": "24",
+			"username": "jviotti",
+			"deviceType": "raspberry-pi2",
+			"files": {
+				"network/settings": "[global]\nOfflineMode=false\n\n[WiFi]\nEnable=true\nTethering=false\n\n[Wired]\nEnable=true\nTethering=false\n\n[Bluetooth]\nEnable=true\nTethering=false",
+				"network/network.config": "[service_home_ethernet]\nType = ethernet\nNameservers = 8.8.8.8,8.8.4.4"
+			}
+		}
+	},
+	"edison": {
+		"config.json": {
+			"applicationId": "1600",
+			"apiKey": "fKtNQKgc2MaCrYSyTNzztLLPLUPaaElS",
+			"userId": "24",
+			"username": "jviotti",
+			"deviceType": "intel-edison",
+			"wifiSsid": "foobar",
+			"wifiKey": "secret",
+			"apiEndpoint": "https://api.resinstaging.io",
+			"appUpdatePollInterval": "60000",
+			"listenPort": "48484",
+			"mixpanelToken": "cb974f32bab01ecc1171937026774b18",
+			"pubnubPublishKey": "pub-c-6cbce8db-bfd1-4fdf-a8c8-53671ae2b226",
+			"pubnubSubscribeKey": "sub-c-bbc12eba-ce4a-11e3-9782-02ee2ddab7fe",
+			"registryEndpoint": "registry.resinstaging.io",
+			"files": {
+				"network/settings": "[global]\nOfflineMode=false\n\n[WiFi]\nEnable=true\nTethering=false\n\n[Wired]\nEnable=true\nTethering=false\n\n[Bluetooth]\nEnable=true\nTethering=false",
+				"network/network.config": "[service_home_ethernet]\nType = ethernet\nNameservers = 8.8.8.8,8.8.4.4\n\n[service_home_wifi]\nType = wifi\nName = foobar\nPassphrase = secret\nNameservers = 8.8.8.8,8.8.4.4"
+			}
+		}
+	}
+}

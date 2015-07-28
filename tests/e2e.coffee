@@ -1,116 +1,89 @@
 Promise = require('bluebird')
 fs = Promise.promisifyAll(require('fs'))
-assert = require('assert')
 path = require('path')
-scenario = require('./scenario')
+wary = require('wary')
 imagefs = require('../lib/imagefs')
+utils = require('./utils')
+files = require('./images/files.json')
 
-RASPBERRYPI_CONFIG_JSON =
-	applicationId: '1503'
-	apiKey: 'osMIXH0Yxk5dBQlN7qdB0Q3Lh5yNnvHX'
-	userId: '24'
-	username: 'jviotti'
-	deviceType: 'raspberry-pi2'
-	files:
-		'network/settings': '[global]\nOfflineMode=false\n\n[WiFi]\nEnable=true\nTethering=false\n\n[Wired]\nEnable=true\nTethering=false\n\n[Bluetooth]\nEnable=true\nTethering=false'
-		'network/network.config': '[service_home_ethernet]\nType = ethernet\nNameservers = 8.8.8.8,8.8.4.4'
+RASPBERRYPI = path.join(__dirname, 'images', 'raspberrypi.img')
+EDISON = path.join(__dirname, 'images', 'edison-config.img')
+LOREM = path.join(__dirname, 'images', 'lorem.txt')
 
-EDISON_CONFIG_JSON =
-	applicationId: '1600'
-	apiKey: 'fKtNQKgc2MaCrYSyTNzztLLPLUPaaElS'
-	userId: '24'
-	username: 'jviotti'
-	deviceType: 'intel-edison'
-	wifiSsid: 'foobar'
-	wifiKey: 'secret'
-	apiEndpoint: 'https://api.resinstaging.io'
-	appUpdatePollInterval: '60000'
-	listenPort: '48484'
-	mixpanelToken: 'cb974f32bab01ecc1171937026774b18'
-	pubnubPublishKey: 'pub-c-6cbce8db-bfd1-4fdf-a8c8-53671ae2b226'
-	pubnubSubscribeKey: 'sub-c-bbc12eba-ce4a-11e3-9782-02ee2ddab7fe'
-	registryEndpoint: 'registry.resinstaging.io'
-	files:
-		'network/settings': '[global]\nOfflineMode=false\n\n[WiFi]\nEnable=true\nTethering=false\n\n[Wired]\nEnable=true\nTethering=false\n\n[Bluetooth]\nEnable=true\nTethering=false'
-		'network/network.config': '[service_home_ethernet]\nType = ethernet\nNameservers = 8.8.8.8,8.8.4.4\n\n[service_home_wifi]\nType = wifi\nName = foobar\nPassphrase = secret\nNameservers = 8.8.8.8,8.8.4.4'
-
-extract = (stream) ->
-	return new Promise (resolve, reject) ->
-		result = ''
-		stream.on('error', reject)
-		stream.on 'data', (chunk) ->
-			result += chunk
-		stream.on 'end', ->
-			resolve(result)
-
-waitStream = (stream) ->
-	return new Promise (resolve, reject) ->
-		stream.on('error', reject)
-		stream.on('close', resolve)
-
-scenario.add 'it should read a config.json from a raspberrypi', ->
+wary.it 'should read a config.json from a raspberrypi',
+	raspberrypi: RASPBERRYPI
+, (images) ->
 	input =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 4
 			logical: 1
 		path: '/config.json'
 
-	imagefs.read(input).then(extract).then (contents) ->
-		scenario.assert(JSON.parse(contents), RASPBERRYPI_CONFIG_JSON)
+	imagefs.read(input).then(utils.extract).then (contents) ->
+		utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 
-scenario.add 'it should copy files between different partitions in a raspberrypi', ->
+wary.it 'should copy files between different partitions in a raspberrypi',
+	raspberrypi: RASPBERRYPI
+, (images) ->
 	input =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 1
 		path: '/cmdline.txt'
 
 	output =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 4
 			logical: 1
 		path: '/config.json'
 
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+	imagefs.copy(input, output).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 
-scenario.add 'it should replace files between different partitions in a raspberrypi', ->
+wary.it 'should replace files between different partitions in a raspberrypi',
+	raspberrypi: RASPBERRYPI
+, (images) ->
 	input =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 1
 		path: '/cmdline.txt'
 
 	output =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 4
 			logical: 1
 		path: '/cmdline.txt'
 
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+	imagefs.copy(input, output).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 
-scenario.add 'it should copy a local file to a raspberry pi partition', ->
-	inputStream = fs.createReadStream(@lorem)
+wary.it 'should copy a local file to a raspberry pi partition',
+	raspberrypi: RASPBERRYPI
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
 	output =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 4
 			logical: 1
 		path: '/lorem.txt'
 
-	imagefs.write(output, inputStream).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 
-scenario.add 'it should copy a file from a raspberry pi partition to a local file', ->
+wary.it 'should copy a file from a raspberry pi partition to a local file',
+	raspberrypi: RASPBERRYPI
+, (images) ->
 	input =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 1
 		path: '/cmdline.txt'
@@ -119,86 +92,102 @@ scenario.add 'it should copy a file from a raspberry pi partition to a local fil
 
 	imagefs.read(input).then (inputStream) ->
 		return inputStream.pipe(fs.createWriteStream(output))
-	.then(waitStream).then ->
+	.then(utils.waitStream).then ->
 		fs.createReadStream(output)
-	.then(extract).then (contents) ->
-		scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+	.then(utils.extract).then (contents) ->
+		utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 		fs.unlinkAsync(output)
 
-scenario.add 'it should replace a file in an edison config partition with a local file', ->
-	inputStream = fs.createReadStream(@lorem)
+wary.it 'should replace a file in an edison config partition with a local file',
+	edison: EDISON
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
 	output =
-		image: @edison
+		image: images.edison
 		path: '/config.json'
 
-	imagefs.write(output, inputStream).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 
-scenario.add 'it should copy a file from an edison partition to a raspberry pi', ->
+wary.it 'should copy a file from an edison partition to a raspberry pi',
+	raspberrypi: RASPBERRYPI
+	edison: EDISON
+, (images) ->
 	input =
-		image: @edison
+		image: images.edison
 		path: '/config.json'
 
 	output =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 4
 			logical: 1
 		path: '/edison-config.json'
 
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(JSON.parse(contents), EDISON_CONFIG_JSON)
+	imagefs.copy(input, output).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(JSON.parse(contents), files.edison['config.json'])
 
-scenario.add 'it should copy a file from a raspberry pi to an edison config partition', ->
+wary.it 'should copy a file from a raspberry pi to an edison config partition',
+	raspberrypi: RASPBERRYPI
+	edison: EDISON
+, (images) ->
 	input =
-		image: @raspberrypi
+		image: images.raspberrypi
 		partition:
 			primary: 1
 		path: '/cmdline.txt'
 
 	output =
-		image: @edison
+		image: images.edison
 		path: '/config.json'
 
-	imagefs.copy(input, output).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+	imagefs.copy(input, output).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 
-scenario.add 'it should copy a local file to an edison config partition', ->
-	inputStream = fs.createReadStream(@lorem)
+wary.it 'should copy a local file to an edison config partition',
+	edison: EDISON
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
 	output =
-		image: @edison
+		image: images.edison
 		path: '/lorem.txt'
 
-	imagefs.write(output, inputStream).then(waitStream).then ->
-		imagefs.read(output).then(extract).then (contents) ->
-			scenario.assert(contents, 'Lorem ipsum dolor sit amet\n')
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents, 'Lorem ipsum dolor sit amet\n')
 
-scenario.add 'it should read a config.json from a edison config partition', ->
+wary.it 'should read a config.json from a edison config partition',
+	edison: EDISON
+, (images) ->
 	input =
-		image: @edison
+		image: images.edison
 		path: '/config.json'
 
-	imagefs.read(input).then(extract).then (contents) ->
-		scenario.assert(JSON.parse(contents), EDISON_CONFIG_JSON)
+	imagefs.read(input).then(utils.extract).then (contents) ->
+		utils.expect(JSON.parse(contents), files.edison['config.json'])
 
-scenario.add 'it should copy a file from a edison config partition to a local file', ->
+wary.it 'should copy a file from a edison config partition to a local file',
+	edison: EDISON
+, (images) ->
 	input =
-		image: @edison
+		image: images.edison
 		path: '/config.json'
 
 	output = path.join(__dirname, 'output.tmp')
 
 	imagefs.read(input).then (inputStream) ->
 		return inputStream.pipe(fs.createWriteStream(output))
-	.then(waitStream).then ->
+	.then(utils.waitStream).then ->
 		fs.createReadStream(output)
-	.then(extract).then (contents) ->
-		scenario.assert(JSON.parse(contents), EDISON_CONFIG_JSON)
+	.then(utils.extract).then (contents) ->
+		utils.expect(JSON.parse(contents), files.edison['config.json'])
 		fs.unlinkAsync(output)
 
-scenario.run().catch (error) ->
+wary.run().catch (error) ->
 	console.error(error, error.stack)
 	process.exit(1)
