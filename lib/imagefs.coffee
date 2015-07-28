@@ -26,6 +26,7 @@ THE SOFTWARE.
 # @module imagefs
 ###
 
+replaceStream = require('replacestream')
 driver = require('./driver')
 
 ###*
@@ -112,3 +113,31 @@ exports.write = (definition, stream) ->
 exports.copy = (input, output) ->
 	exports.read(input).then (stream) ->
 		exports.write(output, stream)
+
+###*
+# @summary Perform search and replacement in a file
+# @function
+# @public
+#
+# @param {Object} definition - device path definition
+# @param {String} definition.image - path to the image
+# @param {Object} [definition.partition] - partition definition
+# @param {String} definition.path - file path
+#
+# @param {(String|RegExp)} search - search term
+# @param {String} replace - replace value
+#
+# @returns {Promise<WriteStream>}
+#
+# @example
+# imagefs.replace
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 2
+# 	path: '/baz/qux'
+# , 'bar', 'baz'
+###
+exports.replace = (definition, search, replace) ->
+	exports.read(definition).then (stream) ->
+		replacedStream = stream.pipe(replaceStream(search, replace))
+		exports.write(definition, replacedStream)

@@ -44,6 +44,7 @@
     "fatfs": "^0.10.3",
     "lodash": "^3.10.0",
     "mbr": "^0.4.4",
-    "partitioninfo": "^1.0.0"
+    "partitioninfo": "^1.0.0",
+    "replacestream": "^4.0.0"
   }
 }

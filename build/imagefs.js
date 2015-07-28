@@ -26,7 +26,9 @@ THE SOFTWARE.
 /**
  * @module imagefs
  */
-var driver;
+var driver, replaceStream;
+
+replaceStream = require('replacestream');
 
 driver = require('./driver');
 
@@ -124,5 +126,38 @@ exports.write = function(definition, stream) {
 exports.copy = function(input, output) {
   return exports.read(input).then(function(stream) {
     return exports.write(output, stream);
+  });
+};
+
+
+/**
+ * @summary Perform search and replacement in a file
+ * @function
+ * @public
+ *
+ * @param {Object} definition - device path definition
+ * @param {String} definition.image - path to the image
+ * @param {Object} [definition.partition] - partition definition
+ * @param {String} definition.path - file path
+ *
+ * @param {(String|RegExp)} search - search term
+ * @param {String} replace - replace value
+ *
+ * @returns {Promise<WriteStream>}
+ *
+ * @example
+ * imagefs.replace
+ * 	image: '/foo/bar.img'
+ * 	partition:
+ * 		primary: 2
+ * 	path: '/baz/qux'
+ * , 'bar', 'baz'
+ */
+
+exports.replace = function(definition, search, replace) {
+  return exports.read(definition).then(function(stream) {
+    var replacedStream;
+    replacedStream = stream.pipe(replaceStream(search, replace));
+    return exports.write(definition, replacedStream);
   });
 };

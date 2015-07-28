@@ -188,6 +188,66 @@ wary.it 'should copy a file from a edison config partition to a local file',
 		utils.expect(JSON.parse(contents), files.edison['config.json'])
 		fs.unlinkAsync(output)
 
+wary.it 'should replace a file in a raspberry pi partition',
+	raspberrypi: RASPBERRYPI
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
+	output =
+		image: images.raspberrypi
+		partition:
+			primary: 1
+		path: '/lorem.txt'
+
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.replace(output, 'Lorem', 'Elementum').then(utils.waitStream).then ->
+			imagefs.read(output).then(utils.extract).then (contents) ->
+				utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
+
+wary.it 'should replace a file in a raspberry pi partition with a regex',
+	raspberrypi: RASPBERRYPI
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
+	output =
+		image: images.raspberrypi
+		partition:
+			primary: 1
+		path: '/lorem.txt'
+
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.replace(output, /m/g, 'n').then(utils.waitStream).then ->
+			imagefs.read(output).then(utils.extract).then (contents) ->
+				utils.expect(contents, 'Loren ipsun dolor sit anet\n')
+
+wary.it 'should replace a file in an edison partition',
+	edison: EDISON
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
+	output =
+		image: images.edison
+		path: '/lorem.txt'
+
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.replace(output, 'Lorem', 'Elementum').then(utils.waitStream).then ->
+			imagefs.read(output).then(utils.extract).then (contents) ->
+				utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
+
+wary.it 'should replace a file in an edison partition with a regex',
+	edison: EDISON
+	lorem: LOREM
+, (images) ->
+	inputStream = fs.createReadStream(images.lorem)
+	output =
+		image: images.edison
+		path: '/lorem.txt'
+
+	imagefs.write(output, inputStream).then(utils.waitStream).then ->
+		imagefs.replace(output, /m/g, 'n').then(utils.waitStream).then ->
+			imagefs.read(output).then(utils.extract).then (contents) ->
+				utils.expect(contents, 'Loren ipsun dolor sit anet\n')
+
 wary.run().catch (error) ->
 	console.error(error, error.stack)
 	process.exit(1)
