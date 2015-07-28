@@ -204,6 +204,20 @@ wary.it 'should replace a file in a raspberry pi partition',
 			imagefs.read(output).then(utils.extract).then (contents) ->
 				utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
 
+wary.it 'should replace cmdline.txt in a raspberry pi partition',
+	raspberrypi: RASPBERRYPI
+, (images) ->
+
+	cmdline =
+		image: images.raspberrypi
+		partition:
+			primary: 1
+		path: '/cmdline.txt'
+
+	imagefs.replace(cmdline, 'lpm_enable=0', 'lpm_enable=1').then(utils.waitStream).then ->
+		imagefs.read(cmdline).then(utils.extract).then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=1 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+
 wary.it 'should replace a file in a raspberry pi partition with a regex',
 	raspberrypi: RASPBERRYPI
 	lorem: LOREM
