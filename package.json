@@ -23,7 +23,7 @@
     "prepublish": "gulp build",
     "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md"
   },
-  "author": "Juan Cruz Viotti <juanchiviotti@gmail.com>",
+  "author": "Juan Cruz Viotti <juan@resin.io>",
   "license": "MIT",
   "devDependencies": {
     "chalk": "^1.1.0",
