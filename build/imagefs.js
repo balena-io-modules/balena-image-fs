@@ -58,7 +58,7 @@ driver = require('./driver');
 
 exports.read = function(definition) {
   return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return fat.createReadStream(definition.path);
+    return fat.createReadStream(definition.path).on('end', fat.closeDriver);
   });
 };
 
@@ -87,7 +87,7 @@ exports.read = function(definition) {
 
 exports.write = function(definition, stream) {
   return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return stream.pipe(fat.createWriteStream(definition.path));
+    return stream.pipe(fat.createWriteStream(definition.path)).on('close', fat.closeDriver);
   });
 };
 

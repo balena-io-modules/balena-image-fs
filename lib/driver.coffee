@@ -77,6 +77,11 @@ exports.createDriverFromFile = (file, offset, size) ->
 		driver = exports.getDriver(fd, offset, size)
 		fat = fatfs.createFileSystem(driver)
 
+		# Not closing it might cause EPERM errors
+		# when unlinking the file
+		fat.closeDriver = ->
+			return fs.closeAsync(fd)
+
 		Promise.fromNode (callback) ->
 			fat.on('error', callback)
 			fat.on 'ready', ->

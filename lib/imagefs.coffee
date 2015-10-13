@@ -54,6 +54,7 @@ driver = require('./driver')
 exports.read = (definition) ->
 	driver.interact(definition.image, definition.partition).then (fat) ->
 		return fat.createReadStream(definition.path)
+			.on('end', fat.closeDriver)
 
 ###*
 # @summary Write to a device file
@@ -79,6 +80,7 @@ exports.read = (definition) ->
 exports.write = (definition, stream) ->
 	driver.interact(definition.image, definition.partition).then (fat) ->
 		return stream.pipe(fat.createWriteStream(definition.path))
+			.on('close', fat.closeDriver)
 
 ###*
 # @summary Copy a device file

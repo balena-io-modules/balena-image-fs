@@ -91,6 +91,9 @@ exports.createDriverFromFile = function(file, offset, size) {
     var driver, fat;
     driver = exports.getDriver(fd, offset, size);
     fat = fatfs.createFileSystem(driver);
+    fat.closeDriver = function() {
+      return fs.closeAsync(fd);
+    };
     return Promise.fromNode(function(callback) {
       fat.on('error', callback);
       return fat.on('ready', function() {
