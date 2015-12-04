@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.2] - 2015-12-04
+
+### Changed
+
+- Reduce package size by omitting tests in NPM.
+
 ## [2.1.1] - 2015-10-13
 
 ### Changed
@@ -35,6 +41,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - Local file read/write support.
 
+[2.1.2]: https://github.com/resin-io/resin-image-fs/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/resin-io/resin-image-fs/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/resin-io/resin-image-fs/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/resin-io/resin-image-fs/compare/v2.0.0...v2.0.1
