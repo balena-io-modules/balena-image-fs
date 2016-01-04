@@ -24,7 +24,7 @@
     "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md"
   },
   "author": "Juan Cruz Viotti <juan@resin.io>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "chalk": "^1.1.0",
     "coffee-script": "~1.8.0",
