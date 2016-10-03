@@ -19,10 +19,11 @@ limitations under the License.
 ###
 
 replaceStream = require('replacestream')
+Promise = require('bluebird')
 driver = require('./driver')
 
 ###*
-# @summary Read a device file
+# @summary Get a device file readable stream
 # @function
 # @public
 #
@@ -49,7 +50,7 @@ exports.read = (definition) ->
 			.on('end', fat.closeDriver)
 
 ###*
-# @summary Write to a device file
+# @summary Write a stream to a device file
 # @function
 # @public
 #
@@ -73,6 +74,57 @@ exports.write = (definition, stream) ->
 	driver.interact(definition.image, definition.partition).then (fat) ->
 		return stream.pipe(fat.createWriteStream(definition.path))
 			.on('close', fat.closeDriver)
+
+###*
+# @summary Read a device file
+# @function
+# @public
+#
+# @param {Object} definition - device path definition
+# @param {String} definition.image - path to the image
+# @param {Object} [definition.partition] - partition definition
+# @param {String} definition.path - file path
+#
+# @returns {Promise<String>} file text
+#
+# @example
+# imagefs.readFile
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 4
+# 		logical: 1
+# 	path: '/baz/qux'
+# .then (contents) ->
+# 	console.log(contents)
+###
+exports.readFile = (definition) ->
+	driver.interact(definition.image, definition.partition).then (fat) ->
+		fat.readFileAsync(definition.path, encoding: 'utf8').tap(fat.closeDriver)
+
+###*
+# @summary Write a device file
+# @function
+# @public
+#
+# @param {Object} definition - device path definition
+# @param {String} definition.image - path to the image
+# @param {Object} [definition.partition] - partition definition
+# @param {String} definition.path - file path
+#
+# @param {String} contents - contents string
+# @returns {Promise}
+#
+# @example
+# imagefs.writeFile
+# 	image: '/foo/bar.img'
+# 	partition:
+# 		primary: 2
+# 	path: '/baz/qux'
+# , 'foo bar baz'
+###
+exports.writeFile = (definition, contents) ->
+	driver.interact(definition.image, definition.partition).then (fat) ->
+		fat.writeFileAsync(definition.path, contents).tap(fat.closeDriver)
 
 ###*
 # @summary Copy a device file

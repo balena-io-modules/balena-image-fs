@@ -18,15 +18,17 @@ limitations under the License.
 /**
  * @module imagefs
  */
-var driver, replaceStream;
+var Promise, driver, replaceStream;
 
 replaceStream = require('replacestream');
+
+Promise = require('bluebird');
 
 driver = require('./driver');
 
 
 /**
- * @summary Read a device file
+ * @summary Get a device file readable stream
  * @function
  * @public
  *
@@ -56,7 +58,7 @@ exports.read = function(definition) {
 
 
 /**
- * @summary Write to a device file
+ * @summary Write a stream to a device file
  * @function
  * @public
  *
@@ -80,6 +82,67 @@ exports.read = function(definition) {
 exports.write = function(definition, stream) {
   return driver.interact(definition.image, definition.partition).then(function(fat) {
     return stream.pipe(fat.createWriteStream(definition.path)).on('close', fat.closeDriver);
+  });
+};
+
+
+/**
+ * @summary Read a device file
+ * @function
+ * @public
+ *
+ * @param {Object} definition - device path definition
+ * @param {String} definition.image - path to the image
+ * @param {Object} [definition.partition] - partition definition
+ * @param {String} definition.path - file path
+ *
+ * @returns {Promise<String>} file text
+ *
+ * @example
+ * imagefs.readFile
+ * 	image: '/foo/bar.img'
+ * 	partition:
+ * 		primary: 4
+ * 		logical: 1
+ * 	path: '/baz/qux'
+ * .then (contents) ->
+ * 	console.log(contents)
+ */
+
+exports.readFile = function(definition) {
+  return driver.interact(definition.image, definition.partition).then(function(fat) {
+    return fat.readFileAsync(definition.path, {
+      encoding: 'utf8'
+    }).tap(fat.closeDriver);
+  });
+};
+
+
+/**
+ * @summary Write a device file
+ * @function
+ * @public
+ *
+ * @param {Object} definition - device path definition
+ * @param {String} definition.image - path to the image
+ * @param {Object} [definition.partition] - partition definition
+ * @param {String} definition.path - file path
+ *
+ * @param {String} contents - contents string
+ * @returns {Promise}
+ *
+ * @example
+ * imagefs.writeFile
+ * 	image: '/foo/bar.img'
+ * 	partition:
+ * 		primary: 2
+ * 	path: '/baz/qux'
+ * , 'foo bar baz'
+ */
+
+exports.writeFile = function(definition, contents) {
+  return driver.interact(definition.image, definition.partition).then(function(fat) {
+    return fat.writeFileAsync(definition.path, contents).tap(fat.closeDriver);
   });
 };
 

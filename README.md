@@ -31,15 +31,18 @@ Documentation
 
 
 * [imagefs](#module_imagefs)
-  * [.read(definition)](#module_imagefs.read) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
-  * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
-  * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
-  * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.read(definition)](#module_imagefs.read) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
+    * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.readFile(definition)](#module_imagefs.readFile) ⇒ <code>Promise.&lt;String&gt;</code>
+    * [.writeFile(definition, contents)](#module_imagefs.writeFile) ⇒ <code>Promise</code>
+    * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 
 <a name="module_imagefs.read"></a>
+
 ### imagefs.read(definition) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
-**Summary**: Read a device file  
+**Summary**: Get a device file readable stream  
 **Returns**: <code>Promise.&lt;ReadStream&gt;</code> - file stream  
 **Access:** public  
 
@@ -62,9 +65,10 @@ imagefs.read
 	stream.pipe(fs.createWriteStream('/bar/qux'))
 ```
 <a name="module_imagefs.write"></a>
+
 ### imagefs.write(definition, stream) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
-**Summary**: Write to a device file  
+**Summary**: Write a stream to a device file  
 **Access:** public  
 
 | Param | Type | Description |
@@ -84,7 +88,58 @@ imagefs.write
 	path: '/baz/qux'
 , fs.createReadStream('/baz/qux')
 ```
+<a name="module_imagefs.readFile"></a>
+
+### imagefs.readFile(definition) ⇒ <code>Promise.&lt;String&gt;</code>
+**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Summary**: Read a device file  
+**Returns**: <code>Promise.&lt;String&gt;</code> - file text  
+**Access:** public  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| definition | <code>Object</code> | device path definition |
+| definition.image | <code>String</code> | path to the image |
+| [definition.partition] | <code>Object</code> | partition definition |
+| definition.path | <code>String</code> | file path |
+
+**Example**  
+```js
+imagefs.readFile
+	image: '/foo/bar.img'
+	partition:
+		primary: 4
+		logical: 1
+	path: '/baz/qux'
+.then (contents) ->
+	console.log(contents)
+```
+<a name="module_imagefs.writeFile"></a>
+
+### imagefs.writeFile(definition, contents) ⇒ <code>Promise</code>
+**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Summary**: Write a device file  
+**Access:** public  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| definition | <code>Object</code> | device path definition |
+| definition.image | <code>String</code> | path to the image |
+| [definition.partition] | <code>Object</code> | partition definition |
+| definition.path | <code>String</code> | file path |
+| contents | <code>String</code> | contents string |
+
+**Example**  
+```js
+imagefs.writeFile
+	image: '/foo/bar.img'
+	partition:
+		primary: 2
+	path: '/baz/qux'
+, 'foo bar baz'
+```
 <a name="module_imagefs.copy"></a>
+
 ### imagefs.copy(input, output) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Copy a device file  
@@ -116,6 +171,7 @@ imagefs.copy
 	path: '/baz/hello'
 ```
 <a name="module_imagefs.replace"></a>
+
 ### imagefs.replace(definition, search, replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Perform search and replacement in a file  
