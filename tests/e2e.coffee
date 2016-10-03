@@ -23,6 +23,19 @@ wary.it 'should read a config.json from a raspberrypi',
 	imagefs.read(input).then(utils.extract).then (contents) ->
 		utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 
+wary.it 'should read a config.json from a raspberrypi using readFile',
+	raspberrypi: RASPBERRYPI
+, (images) ->
+	input =
+		image: images.raspberrypi
+		partition:
+			primary: 4
+			logical: 1
+		path: '/config.json'
+
+	imagefs.readFile(input).then (contents) ->
+		utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
+
 wary.it 'should copy files between different partitions in a raspberrypi',
 	raspberrypi: RASPBERRYPI
 , (images) ->
@@ -77,6 +90,20 @@ wary.it 'should copy a local file to a raspberry pi partition',
 
 	imagefs.write(output, inputStream).then(utils.waitStream).then ->
 		imagefs.read(output).then(utils.extract).then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+
+wary.it 'should copy text to a raspberry pi partition using writeFile',
+	raspberrypi: RASPBERRYPI
+, (images) ->
+	output =
+		image: images.raspberrypi
+		partition:
+			primary: 4
+			logical: 1
+		path: '/lorem.txt'
+
+	imagefs.writeFile(output, 'Lorem ipsum dolor sit amet\n').then ->
+		imagefs.readFile(output).then (contents) ->
 			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 
 wary.it 'should copy a file from a raspberry pi partition to a local file',
