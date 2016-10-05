@@ -10,6 +10,31 @@ RASPBERRYPI = path.join(__dirname, 'images', 'raspberrypi.img')
 EDISON = path.join(__dirname, 'images', 'edison-config.img')
 LOREM = path.join(__dirname, 'images', 'lorem.txt')
 
+wary.it 'should list files from a raspberrypi image',
+	raspberrypi: RASPBERRYPI
+, (images) ->
+	input =
+		image: images.raspberrypi
+		partition:
+			primary: 1
+		path: '/overlays'
+
+	imagefs.listDirectory(input).then (contents) ->
+		utils.expect contents, [
+			'ds1307-rtc-overlay.dtb',
+			'hifiberry-amp-overlay.dtb',
+			'hifiberry-dac-overlay.dtb',
+			'hifiberry-dacplus-overlay.dtb',
+			'hifiberry-digi-overlay.dtb',
+			'iqaudio-dac-overlay.dtb',
+			'iqaudio-dacplus-overlay.dtb',
+			'lirc-rpi-overlay.dtb',
+			'pcf8523-rtc-overlay.dtb',
+			'pps-gpio-overlay.dtb',
+			'w1-gpio-overlay.dtb',
+			'w1-gpio-pullup-overlay.dtb'
+		]
+
 wary.it 'should read a config.json from a raspberrypi',
 	raspberrypi: RASPBERRYPI
 , (images) ->

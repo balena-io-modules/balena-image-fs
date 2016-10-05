@@ -37,6 +37,7 @@ Documentation
     * [.writeFile(definition, contents)](#module_imagefs.writeFile) ⇒ <code>Promise</code>
     * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
     * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.listDirectory(definition)](#module_imagefs.listDirectory) ⇒ <code>Promise.&lt;Array.&lt;String&gt;&gt;</code>
 
 <a name="module_imagefs.read"></a>
 
@@ -194,6 +195,32 @@ imagefs.replace
 		primary: 2
 	path: '/baz/qux'
 , 'bar', 'baz'
+```
+<a name="module_imagefs.listDirectory"></a>
+
+### imagefs.listDirectory(definition) ⇒ <code>Promise.&lt;Array.&lt;String&gt;&gt;</code>
+**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Summary**: List the contents of a directory  
+**Returns**: <code>Promise.&lt;Array.&lt;String&gt;&gt;</code> - list of files in directory  
+**Access:** public  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| definition | <code>Object</code> | device path definition |
+| definition.image | <code>String</code> | path to the image |
+| [definition.partition] | <code>Object</code> | partition definition |
+| definition.path | <code>String</code> | directory path |
+
+**Example**  
+```js
+imagefs.listDirectory
+	image: '/foo/bar.img'
+	partition:
+		primary: 4
+		logical: 1
+	path: '/my/directory'
+.then (files) ->
+	console.log(files)
 ```
 
 Support
