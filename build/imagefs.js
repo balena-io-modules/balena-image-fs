@@ -18,7 +18,9 @@ limitations under the License.
 /**
  * @module imagefs
  */
-var Promise, driver, replaceStream;
+var Promise, driver, replaceStream, _;
+
+_ = require('lodash');
 
 replaceStream = require('replacestream');
 
@@ -214,5 +216,37 @@ exports.replace = function(definition, search, replace) {
     var replacedStream;
     replacedStream = stream.pipe(replaceStream(search, replace));
     return exports.write(definition, replacedStream);
+  });
+};
+
+
+/**
+ * @summary List the contents of a directory
+ * @function
+ * @public
+ *
+ * @param {Object} definition - device path definition
+ * @param {String} definition.image - path to the image
+ * @param {Object} [definition.partition] - partition definition
+ * @param {String} definition.path - directory path
+ *
+ * @returns {Promise<String[]>} list of files in directory
+ *
+ * @example
+ * imagefs.listDirectory
+ * 	image: '/foo/bar.img'
+ * 	partition:
+ * 		primary: 4
+ * 		logical: 1
+ * 	path: '/my/directory'
+ * .then (files) ->
+ * 	console.log(files)
+ */
+
+exports.listDirectory = function(definition) {
+  return driver.interact(definition.image, definition.partition).then(function(fat) {
+    return fat.readdirAsync(definition.path).filter(function(file) {
+      return !_.startsWith(file, '.');
+    }).tap(fat.closeDriver);
   });
 };
