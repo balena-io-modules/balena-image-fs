@@ -23,16 +23,71 @@ _ = require('lodash')
 filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 replaceStream = require('replacestream')
+ext2fs = require('ext2fs')
+
 driver = require('./driver')
+utils = require('./utils')
 
 checkImageType = (image) ->
 	if not (_.isString(image) or image instanceof filedisk.Disk)
 		throw new Error('image must be a String (file path) or a filedisk.Disk instance')
 
+composeDisposers = (outerDisposer, createInnerDisposer) ->
+	Promise.resolve(outerDisposer)
+	.then (outerDisposer) ->
+		outerDisposer._promise
+		.then (outerResult) ->
+			Promise.resolve(createInnerDisposer(outerResult))
+			.then (innerDisposer) ->
+				innerDisposer._promise
+				.then (innerResult) ->
+					Promise.resolve(innerResult)
+					.disposer (innerResult) ->
+						Promise.resolve(innerDisposer._data(innerResult))
+						.then ->
+							outerDisposer._data(outerResult)
+			.catch (err) ->
+				outerDisposer._data(outerResult)
+				throw err
+
+###*
+# @summary Get a bluebird.disposer of a node fs like interface for a partition
+# @function
+# @public
+#
+# @param {String|filedisk.Disk} disk - path to the image or filedisk.Disk instance
+# @param {Object} partition - partition definition
+#
+# @returns {bluebird.disposer<fs>} node fs like interface
+#
+# @example
+#
+# Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
+#   fs.readFileAsync('/bar/qux')
+#   .then (contents) ->
+#     console.log(contents)
+###
+exports.interact = (disk, partition) ->
+	checkImageType(disk)
+	if _.isString(disk)
+		composeDisposers(
+			filedisk.openFile(disk, 'r+')
+			(fd) ->
+				disk = new filedisk.FileDisk(fd, true)
+				driver.interact(disk, partition)
+		)
+	else if disk instanceof filedisk.Disk
+		driver.interact(disk, partition)
+
 read = (disk, partition, path) ->
-	driver.interact(disk, partition)
-	.then (fat) ->
-		fat.createReadStream(path)
+	composeDisposers(
+		driver.interact(disk, partition)
+		(fs_) ->
+			Promise.resolve(fs_.createReadStream(path, autoClose: false))
+			.disposer (stream) ->
+				if stream.fd != undefined
+					fs_.closeAsync(stream.fd)
+	)
 
 ###*
 # @summary Get a device file readable stream
@@ -44,36 +99,38 @@ read = (disk, partition, path) ->
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
-# @returns {Promise<ReadStream>} file stream
+# @returns {bluebird.disposer<ReadStream>} file stream
 #
 # @example
-# imagefs.read
+# disposer = imagefs.read
 # 	image: '/foo/bar.img'
 # 	partition:
 # 		primary: 4
 # 		logical: 1
 # 	path: '/baz/qux'
-# .then (stream) ->
-# 	stream.pipe(fs.createWriteStream('/bar/qux'))
+#
+# Promise.using disposer, (stream) ->
+#   out = fs.createWriteStream('/bar/qux')
+#   stream.pipe(out)
+#   utils.waitStream(out)
 ###
 exports.read = (definition) ->
 	checkImageType(definition.image)
 	if _.isString(definition.image)
-		fs.openAsync(definition.image, 'r')
-		.then (fd) ->
-			close = -> fs.closeAsync(fd)
-			disk = new filedisk.FileDisk(fd, true)
-			read(disk, definition.partition, definition.path)
-			.tap (stream) ->
-				stream.on('end', close)
-				stream.on('error', close)
+		composeDisposers(
+			filedisk.openFile(definition.image, 'r')
+			(fd) ->
+				disk = new filedisk.FileDisk(fd, true)
+				read(disk, definition.partition, definition.path)
+		)
 	else if definition.image instanceof filedisk.Disk
 		read(definition.image, definition.partition, definition.path)
 
 write = (disk, partition, path, stream) ->
-	driver.interact(disk, partition)
-	.then (fat) ->
-		stream.pipe(fat.createWriteStream(path))
+	Promise.using driver.interact(disk, partition), (fs_) ->
+		outStream = fs_.createWriteStream(path)
+		stream.pipe(outStream)
+		utils.waitStream(outStream)
 
 ###*
 # @summary Write a stream to a device file
@@ -86,7 +143,7 @@ write = (disk, partition, path, stream) ->
 # @param {String} definition.path - file path
 #
 # @param {ReadStream} stream - contents stream
-# @returns {Promise<WriteStream>}
+# @returns {Promise}
 #
 # @example
 # imagefs.write
@@ -99,21 +156,15 @@ write = (disk, partition, path, stream) ->
 exports.write = (definition, stream) ->
 	checkImageType(definition.image)
 	if _.isString(definition.image)
-		fs.openAsync(definition.image, 'r+')
-		.then (fd) ->
-			close = -> fs.closeAsync(fd)
+		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
 			disk = new filedisk.FileDisk(fd, false, false)
 			write(disk, definition.partition, definition.path, stream)
-			.tap (writeStream) ->
-				writeStream.on('close', close)
-				writeStream.on('error', close)
 	else if definition.image instanceof filedisk.Disk
 		write(definition.image, definition.partition, definition.path, stream)
 
 readFile = (disk, partition, path) ->
-	driver.interact(disk, partition)
-	.then (fat) ->
-		fat.readFileAsync(path, encoding: 'utf8')
+	Promise.using driver.interact(disk, partition), (fs_) ->
+		fs_.readFileAsync(path, encoding: 'utf8')
 
 ###*
 # @summary Read a device file
@@ -147,9 +198,8 @@ exports.readFile = (definition) ->
 		readFile(definition.image, definition.partition, definition.path)
 
 writeFile = (disk, partition, path, contents) ->
-	driver.interact(disk, partition)
-	.then (fat) ->
-		fat.writeFileAsync(path, contents)
+	Promise.using driver.interact(disk, partition), (fs_) ->
+		fs_.writeFileAsync(path, contents)
 
 ###*
 # @summary Write a device file
@@ -196,7 +246,7 @@ exports.writeFile = (definition, contents) ->
 # @param {Object} [output.partition] - partition definition
 # @param {String} output.path - file path
 #
-# @returns {Promise<WriteStream>}
+# @returns {Promise}
 #
 # @example
 # imagefs.copy
@@ -212,7 +262,7 @@ exports.writeFile = (definition, contents) ->
 # 	path: '/baz/hello'
 ###
 exports.copy = (input, output) ->
-	exports.read(input).then (stream) ->
+	Promise.using exports.read(input), (stream) ->
 		exports.write(output, stream)
 
 ###*
@@ -228,7 +278,7 @@ exports.copy = (input, output) ->
 # @param {(String|RegExp)} search - search term
 # @param {String} replace - replace value
 #
-# @returns {Promise<WriteStream>}
+# @returns {Promise}
 #
 # @example
 # imagefs.replace
@@ -239,14 +289,13 @@ exports.copy = (input, output) ->
 # , 'bar', 'baz'
 ###
 exports.replace = (definition, search, replace) ->
-	exports.read(definition).then (stream) ->
+	Promise.using exports.read(definition), (stream) ->
 		replacedStream = stream.pipe(replaceStream(search, replace))
 		exports.write(definition, replacedStream)
 
 listDirectory = (disk, partition, path) ->
-	driver.interact(disk, partition)
-	.then (fat) ->
-		fat.readdirAsync(path)
+	Promise.using driver.interact(disk, partition), (fs_) ->
+		fs_.readdirAsync(path)
 	.filter (file) ->
 		return not _.startsWith(file, '.')
 
@@ -280,3 +329,13 @@ exports.listDirectory = (definition) ->
 			listDirectory(disk, definition.partition, definition.path)
 	else if definition.image instanceof filedisk.Disk
 		listDirectory(definition.image, definition.partition, definition.path)
+
+###*
+# @summary Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.
+# @function
+# @public
+#
+# @returns {Promise}
+###
+exports.close = ->
+	ext2fs.close()

@@ -18,7 +18,7 @@ limitations under the License.
 /**
  * @module imagefs
  */
-var Promise, checkImageType, driver, filedisk, fs, listDirectory, read, readFile, replaceStream, write, writeFile, _;
+var Promise, checkImageType, composeDisposers, driver, ext2fs, filedisk, fs, listDirectory, read, readFile, replaceStream, utils, write, writeFile, _;
 
 Promise = require('bluebird');
 
@@ -30,12 +30,78 @@ fs = Promise.promisifyAll(require('fs'));
 
 replaceStream = require('replacestream');
 
+ext2fs = require('ext2fs');
+
 driver = require('./driver');
+
+utils = require('./utils');
 
 checkImageType = function(image) {
   if (!(_.isString(image) || image instanceof filedisk.Disk)) {
     throw new Error('image must be a String (file path) or a filedisk.Disk instance');
   }
+};
+
+composeDisposers = function(outerDisposer, createInnerDisposer) {
+  return Promise.resolve(outerDisposer).then(function(outerDisposer) {
+    return outerDisposer._promise.then(function(outerResult) {
+      return Promise.resolve(createInnerDisposer(outerResult)).then(function(innerDisposer) {
+        return innerDisposer._promise.then(function(innerResult) {
+          return Promise.resolve(innerResult).disposer(function(innerResult) {
+            return Promise.resolve(innerDisposer._data(innerResult)).then(function() {
+              return outerDisposer._data(outerResult);
+            });
+          });
+        });
+      })["catch"](function(err) {
+        outerDisposer._data(outerResult);
+        throw err;
+      });
+    });
+  });
+};
+
+
+/**
+ * @summary Get a bluebird.disposer of a node fs like interface for a partition
+ * @function
+ * @public
+ *
+ * @param {String|filedisk.Disk} disk - path to the image or filedisk.Disk instance
+ * @param {Object} partition - partition definition
+ *
+ * @returns {bluebird.disposer<fs>} node fs like interface
+ *
+ * @example
+ *
+ * Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
+ *   fs.readFileAsync('/bar/qux')
+ *   .then (contents) ->
+ *     console.log(contents)
+ */
+
+exports.interact = function(disk, partition) {
+  checkImageType(disk);
+  if (_.isString(disk)) {
+    return composeDisposers(filedisk.openFile(disk, 'r+'), function(fd) {
+      disk = new filedisk.FileDisk(fd, true);
+      return driver.interact(disk, partition);
+    });
+  } else if (disk instanceof filedisk.Disk) {
+    return driver.interact(disk, partition);
+  }
+};
+
+read = function(disk, partition, path) {
+  return composeDisposers(driver.interact(disk, partition), function(fs_) {
+    return Promise.resolve(fs_.createReadStream(path, {
+      autoClose: false
+    })).disposer(function(stream) {
+      if (stream.fd !== void 0) {
+        return fs_.closeAsync(stream.fd);
+      }
+    });
+  });
 };
 
 
@@ -49,41 +115,41 @@ checkImageType = function(image) {
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
- * @returns {Promise<ReadStream>} file stream
+ * @returns {bluebird.disposer<ReadStream>} file stream
  *
  * @example
- * imagefs.read
+ * disposer = imagefs.read
  * 	image: '/foo/bar.img'
  * 	partition:
  * 		primary: 4
  * 		logical: 1
  * 	path: '/baz/qux'
- * .then (stream) ->
- * 	stream.pipe(fs.createWriteStream('/bar/qux'))
+ *
+ * Promise.using disposer, (stream) ->
+ *   out = fs.createWriteStream('/bar/qux')
+ *   stream.pipe(out)
+ *   utils.waitStream(out)
  */
 
 exports.read = function(definition) {
   checkImageType(definition.image);
   if (_.isString(definition.image)) {
-    return fs.openAsync(definition.image, 'r').then(function(fd) {
-      var close, disk;
-      close = function() {
-        return fs.closeAsync(fd);
-      };
+    return composeDisposers(filedisk.openFile(definition.image, 'r'), function(fd) {
+      var disk;
       disk = new filedisk.FileDisk(fd, true);
-      return read(disk, definition.partition, definition.path).tap(function(stream) {
-        stream.on('end', close);
-        return stream.on('error', close);
-      });
+      return read(disk, definition.partition, definition.path);
     });
   } else if (definition.image instanceof filedisk.Disk) {
     return read(definition.image, definition.partition, definition.path);
   }
 };
 
-read = function(disk, partition, path) {
-  return driver.interact(disk, partition).then(function(fat) {
-    return fat.createReadStream(path);
+write = function(disk, partition, path, stream) {
+  return Promise.using(driver.interact(disk, partition), function(fs_) {
+    var outStream;
+    outStream = fs_.createWriteStream(path);
+    stream.pipe(outStream);
+    return utils.waitStream(outStream);
   });
 };
 
@@ -99,7 +165,7 @@ read = function(disk, partition, path) {
  * @param {String} definition.path - file path
  *
  * @param {ReadStream} stream - contents stream
- * @returns {Promise<WriteStream>}
+ * @returns {Promise}
  *
  * @example
  * imagefs.write
@@ -113,25 +179,21 @@ read = function(disk, partition, path) {
 exports.write = function(definition, stream) {
   checkImageType(definition.image);
   if (_.isString(definition.image)) {
-    return fs.openAsync(definition.image, 'r+').then(function(fd) {
-      var close, disk;
-      close = function() {
-        return fs.closeAsync(fd);
-      };
+    return Promise.using(filedisk.openFile(definition.image, 'r+'), function(fd) {
+      var disk;
       disk = new filedisk.FileDisk(fd, false, false);
-      return write(disk, definition.partition, definition.path, stream).tap(function(writeStream) {
-        writeStream.on('close', close);
-        return writeStream.on('error', close);
-      });
+      return write(disk, definition.partition, definition.path, stream);
     });
   } else if (definition.image instanceof filedisk.Disk) {
     return write(definition.image, definition.partition, definition.path, stream);
   }
 };
 
-write = function(disk, partition, path, stream) {
-  return driver.interact(disk, partition).then(function(fat) {
-    return stream.pipe(fat.createWriteStream(path));
+readFile = function(disk, partition, path) {
+  return Promise.using(driver.interact(disk, partition), function(fs_) {
+    return fs_.readFileAsync(path, {
+      encoding: 'utf8'
+    });
   });
 };
 
@@ -172,11 +234,9 @@ exports.readFile = function(definition) {
   }
 };
 
-readFile = function(disk, partition, path) {
-  return driver.interact(disk, partition).then(function(fat) {
-    return fat.readFileAsync(path, {
-      encoding: 'utf8'
-    });
+writeFile = function(disk, partition, path, contents) {
+  return Promise.using(driver.interact(disk, partition), function(fs_) {
+    return fs_.writeFileAsync(path, contents);
   });
 };
 
@@ -216,12 +276,6 @@ exports.writeFile = function(definition, contents) {
   }
 };
 
-writeFile = function(disk, partition, path, contents) {
-  return driver.interact(disk, partition).then(function(fat) {
-    return fat.writeFileAsync(path, contents);
-  });
-};
-
 
 /**
  * @summary Copy a device file
@@ -238,7 +292,7 @@ writeFile = function(disk, partition, path, contents) {
  * @param {Object} [output.partition] - partition definition
  * @param {String} output.path - file path
  *
- * @returns {Promise<WriteStream>}
+ * @returns {Promise}
  *
  * @example
  * imagefs.copy
@@ -255,7 +309,7 @@ writeFile = function(disk, partition, path, contents) {
  */
 
 exports.copy = function(input, output) {
-  return exports.read(input).then(function(stream) {
+  return Promise.using(exports.read(input), function(stream) {
     return exports.write(output, stream);
   });
 };
@@ -274,7 +328,7 @@ exports.copy = function(input, output) {
  * @param {(String|RegExp)} search - search term
  * @param {String} replace - replace value
  *
- * @returns {Promise<WriteStream>}
+ * @returns {Promise}
  *
  * @example
  * imagefs.replace
@@ -286,10 +340,18 @@ exports.copy = function(input, output) {
  */
 
 exports.replace = function(definition, search, replace) {
-  return exports.read(definition).then(function(stream) {
+  return Promise.using(exports.read(definition), function(stream) {
     var replacedStream;
     replacedStream = stream.pipe(replaceStream(search, replace));
     return exports.write(definition, replacedStream);
+  });
+};
+
+listDirectory = function(disk, partition, path) {
+  return Promise.using(driver.interact(disk, partition), function(fs_) {
+    return fs_.readdirAsync(path);
+  }).filter(function(file) {
+    return !_.startsWith(file, '.');
   });
 };
 
@@ -330,10 +392,15 @@ exports.listDirectory = function(definition) {
   }
 };
 
-listDirectory = function(disk, partition, path) {
-  return driver.interact(disk, partition).then(function(fat) {
-    return fat.readdirAsync(path);
-  }).filter(function(file) {
-    return !_.startsWith(file, '.');
-  });
+
+/**
+ * @summary Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.
+ * @function
+ * @public
+ *
+ * @returns {Promise}
+ */
+
+exports.close = function() {
+  return ext2fs.close();
 };

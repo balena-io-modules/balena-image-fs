@@ -14,7 +14,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var Promise, SECTOR_SIZE, createDriverFromFile, fatfs, fs, getDriver, partitioninfo;
+var DETECTOR, KNOWN_FILESYSTEMS, MAGIC_OPTS, Promise, SECTOR_SIZE, createDriverFromFile, detectDriver, detectFS, ext2fs, fatfs, fs, magic, partitioninfo,
+  __hasProp = {}.hasOwnProperty;
 
 partitioninfo = require('partitioninfo');
 
@@ -24,77 +25,107 @@ fs = Promise.promisifyAll(require('fs'));
 
 fatfs = require('fatfs');
 
+ext2fs = Promise.promisifyAll(require('ext2fs'));
+
+magic = Promise.promisifyAll(require('mmmagic'));
+
 SECTOR_SIZE = 512;
 
+MAGIC_OPTS = magic.MAGIC_NO_CHECK_TAR | magic.MAGIC_NO_CHECK_ENCODING | magic.MAGIC_NO_CHECK_TOKENS | magic.MAGIC_NO_CHECK_CDF | magic.MAGIC_NO_CHECK_TEXT | magic.MAGIC_NO_CHECK_ELF | magic.MAGIC_NO_CHECK_APPTYPE;
 
-/**
- * @summary Get a fatfs driver given a file descriptor
- * @protected
- * @function
- *
- * @param {filedisk.Disk} disk - filedisk.Disk instance
- * @param {Number} offset - offset of the image
- * @param {Number} size - size of the image
- * @returns {Object} the fatfs driver
- *
- * @example
- * disk = new filedisk.FileDisk(fd)
- * fatDriver = getDriver(disk, 0, 2048)
- */
+DETECTOR = new magic.Magic(MAGIC_OPTS);
 
-getDriver = function(disk, offset, size) {
-  var sectorPosition;
-  sectorPosition = function(sector) {
-    return offset + sector * SECTOR_SIZE;
-  };
-  return {
-    sectorSize: SECTOR_SIZE,
-    numSectors: size / SECTOR_SIZE,
-    readSectors: function(sector, dest, callback) {
-      return disk.read(dest, 0, dest.length, sectorPosition(sector), callback);
-    },
-    writeSectors: function(sector, data, callback) {
-      return disk.write(data, 0, data.length, sectorPosition(sector), callback);
-    }
-  };
+KNOWN_FILESYSTEMS = {
+  'node-ext2fs': ['ext2', 'ext3', 'ext4'],
+  'fatfs': ['FAT']
 };
 
+detectDriver = function(mime) {
+  var driver, filesystem, filesystems, _i, _len;
+  for (driver in KNOWN_FILESYSTEMS) {
+    if (!__hasProp.call(KNOWN_FILESYSTEMS, driver)) continue;
+    filesystems = KNOWN_FILESYSTEMS[driver];
+    for (_i = 0, _len = filesystems.length; _i < _len; _i++) {
+      filesystem = filesystems[_i];
+      if (mime.indexOf(filesystem) !== -1) {
+        return driver;
+      }
+    }
+  }
+};
 
-/**
- * @summary Get a fatfs driver from a file
- * @protected
- * @function
- *
- * @param {filedisk.Disk} disk - filedisk.Disk instance
- * @param {Number} offset - offset of the image
- * @param {Number} size - size of the image
- * @returns {Promise<Object>} fatfs filesystem object
- *
- * @todo Test this.
- *
- * @example
- * Promise.using openFile('my/file', 'r+'), (fd) ->
- *     disk = new filedisk.FileDisk(fd)
- *     createDriverFromFile(disk)
- *     .then (driver) ->
- * 	      console.log(driver)
- */
-
-createDriverFromFile = function(disk, offset, size) {
-  var driver, fat;
-  driver = getDriver(disk, offset, size);
-  fat = fatfs.createFileSystem(driver);
-  return Promise.fromNode(function(callback) {
-    fat.on('error', callback);
-    return fat.on('ready', function() {
-      return callback(null, Promise.promisifyAll(fat));
-    });
+detectFS = function(disk, offset, size) {
+  var buf;
+  disk = Promise.promisifyAll(disk, {
+    multiArgs: true
+  });
+  size = Math.min(size, 2048);
+  buf = Buffer.allocUnsafe(size);
+  return disk.readAsync(buf, 0, size, offset).then(function() {
+    return DETECTOR.detectAsync(buf);
+  }).then(function(mime) {
+    return detectDriver(mime);
   });
 };
 
 
 /**
- * @summary Get a fs instance pointing to a FAT partition
+ * @summary Get a fatfs / node-ext2fs driver from a file
+ * @protected
+ * @function
+ *
+ * @param {filedisk.Disk} disk - filedisk.Disk instance
+ * @param {Number} offset - offset of the image
+ * @param {Number} size - size of the image
+ * @returns {disposer<Object>} a bluebird diposer of a node fs like interface
+ *
+ * @example
+ * Promise.using openFile('my/file', 'r+'), (fd) ->
+ *     disk = new filedisk.FileDisk(fd)
+ *     Promise.using createDriverFromFile(disk), (driver) ->
+ * 	      console.log(driver)
+ */
+
+createDriverFromFile = function(disk, offset, size) {
+  return detectFS(disk, offset, size).then(function(driver) {
+    var fat, sectorPosition;
+    if (driver === 'fatfs') {
+      sectorPosition = function(sector) {
+        return offset + sector * SECTOR_SIZE;
+      };
+      fat = fatfs.createFileSystem({
+        sectorSize: SECTOR_SIZE,
+        numSectors: size / SECTOR_SIZE,
+        readSectors: function(sector, dest, callback) {
+          return disk.read(dest, 0, dest.length, sectorPosition(sector), callback);
+        },
+        writeSectors: function(sector, data, callback) {
+          return disk.write(data, 0, data.length, sectorPosition(sector), callback);
+        }
+      });
+      return Promise.fromNode(function(callback) {
+        fat.on('error', callback);
+        return fat.on('ready', function() {
+          return callback(null, Promise.promisifyAll(fat));
+        });
+      }).disposer(function() {});
+    } else if (driver === 'node-ext2fs') {
+      return ext2fs.mountAsync(disk, {
+        offset: offset
+      }).then(function(fs_) {
+        return Promise.promisifyAll(fs_);
+      }).disposer(function(fs_) {
+        return ext2fs.umountAsync(fs_);
+      });
+    } else {
+      throw new Error('Unsupported filesystem.');
+    }
+  });
+};
+
+
+/**
+ * @summary Get a bluebird disposer of an fs instance pointing to a FAT or ext{2,3,4} partition
  * @protected
  * @function
  *
@@ -104,16 +135,15 @@ createDriverFromFile = function(disk, offset, size) {
  * @param {filedisk.Disk} disk - filedisk.Disk instance
  * @param {Object} [definition] - partition definition
  *
- * @returns {Promise<Object>} filesystem object
+ * @returns {disposer<Object>} filesystem object
  *
  * @example
  * Promise.using filedisk.openFile('foo/bar.img', 'r+'), (fd) ->
  *     disk = new filedisk.FileDisk(fd)
- *     driver.interact(disk, primary: 1)
- *     .then (fs) ->
+ *     Promise.using driver.interact(disk, primary: 1), (fs) ->
  * 	      fs.readdirAsync('/')
- *         .then (files) ->
- * 		      console.log(files)
+ *     .then (files) ->
+ *         console.log(files)
  */
 
 exports.interact = function(disk, definition) {
