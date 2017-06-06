@@ -18,10 +18,21 @@ limitations under the License.
 # @module imagefs
 ###
 
-_ = require('lodash')
-replaceStream = require('replacestream')
 Promise = require('bluebird')
+_ = require('lodash')
+filedisk = require('file-disk')
+fs = Promise.promisifyAll(require('fs'))
+replaceStream = require('replacestream')
 driver = require('./driver')
+
+checkImageType = (image) ->
+	if not (_.isString(image) or image instanceof filedisk.Disk)
+		throw new Error('image must be a String (file path) or a filedisk.Disk instance')
+
+read = (disk, partition, path) ->
+	driver.interact(disk, partition)
+	.then (fat) ->
+		fat.createReadStream(path)
 
 ###*
 # @summary Get a device file readable stream
@@ -29,7 +40,7 @@ driver = require('./driver')
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
@@ -46,9 +57,23 @@ driver = require('./driver')
 # 	stream.pipe(fs.createWriteStream('/bar/qux'))
 ###
 exports.read = (definition) ->
-	driver.interact(definition.image, definition.partition).then (fat) ->
-		return fat.createReadStream(definition.path)
-			.on('end', fat.closeDriver)
+	checkImageType(definition.image)
+	if _.isString(definition.image)
+		fs.openAsync(definition.image, 'r')
+		.then (fd) ->
+			close = -> fs.closeAsync(fd)
+			disk = new filedisk.FileDisk(fd, true)
+			read(disk, definition.partition, definition.path)
+			.tap (stream) ->
+				stream.on('end', close)
+				stream.on('error', close)
+	else if definition.image instanceof filedisk.Disk
+		read(definition.image, definition.partition, definition.path)
+
+write = (disk, partition, path, stream) ->
+	driver.interact(disk, partition)
+	.then (fat) ->
+		stream.pipe(fat.createWriteStream(path))
 
 ###*
 # @summary Write a stream to a device file
@@ -56,7 +81,7 @@ exports.read = (definition) ->
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
@@ -72,9 +97,23 @@ exports.read = (definition) ->
 # , fs.createReadStream('/baz/qux')
 ###
 exports.write = (definition, stream) ->
-	driver.interact(definition.image, definition.partition).then (fat) ->
-		return stream.pipe(fat.createWriteStream(definition.path))
-			.on('close', fat.closeDriver)
+	checkImageType(definition.image)
+	if _.isString(definition.image)
+		fs.openAsync(definition.image, 'r+')
+		.then (fd) ->
+			close = -> fs.closeAsync(fd)
+			disk = new filedisk.FileDisk(fd, false, false)
+			write(disk, definition.partition, definition.path, stream)
+			.tap (writeStream) ->
+				writeStream.on('close', close)
+				writeStream.on('error', close)
+	else if definition.image instanceof filedisk.Disk
+		write(definition.image, definition.partition, definition.path, stream)
+
+readFile = (disk, partition, path) ->
+	driver.interact(disk, partition)
+	.then (fat) ->
+		fat.readFileAsync(path, encoding: 'utf8')
 
 ###*
 # @summary Read a device file
@@ -82,7 +121,7 @@ exports.write = (definition, stream) ->
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
@@ -99,8 +138,18 @@ exports.write = (definition, stream) ->
 # 	console.log(contents)
 ###
 exports.readFile = (definition) ->
-	driver.interact(definition.image, definition.partition).then (fat) ->
-		fat.readFileAsync(definition.path, encoding: 'utf8').tap(fat.closeDriver)
+	checkImageType(definition.image)
+	if _.isString(definition.image)
+		Promise.using filedisk.openFile(definition.image, 'r'), (fd) ->
+			disk = new filedisk.FileDisk(fd)
+			readFile(disk, definition.partition, definition.path)
+	else if definition.image instanceof filedisk.Disk
+		readFile(definition.image, definition.partition, definition.path)
+
+writeFile = (disk, partition, path, contents) ->
+	driver.interact(disk, partition)
+	.then (fat) ->
+		fat.writeFileAsync(path, contents)
 
 ###*
 # @summary Write a device file
@@ -108,7 +157,7 @@ exports.readFile = (definition) ->
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
@@ -124,8 +173,13 @@ exports.readFile = (definition) ->
 # , 'foo bar baz'
 ###
 exports.writeFile = (definition, contents) ->
-	driver.interact(definition.image, definition.partition).then (fat) ->
-		fat.writeFileAsync(definition.path, contents).tap(fat.closeDriver)
+	checkImageType(definition.image)
+	if _.isString(definition.image)
+		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
+			disk = new filedisk.FileDisk(fd)
+			writeFile(disk, definition.partition, definition.path, contents)
+	else if definition.image instanceof filedisk.Disk
+		writeFile(definition.image, definition.partition, definition.path, contents)
 
 ###*
 # @summary Copy a device file
@@ -133,7 +187,7 @@ exports.writeFile = (definition, contents) ->
 # @public
 #
 # @param {Object} input - input device path definition
-# @param {String} input.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [input.partition] - partition definition
 # @param {String} input.path - file path
 #
@@ -167,7 +221,7 @@ exports.copy = (input, output) ->
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - file path
 #
@@ -189,13 +243,20 @@ exports.replace = (definition, search, replace) ->
 		replacedStream = stream.pipe(replaceStream(search, replace))
 		exports.write(definition, replacedStream)
 
+listDirectory = (disk, partition, path) ->
+	driver.interact(disk, partition)
+	.then (fat) ->
+		fat.readdirAsync(path)
+	.filter (file) ->
+		return not _.startsWith(file, '.')
+
 ###*
 # @summary List the contents of a directory
 # @function
 # @public
 #
 # @param {Object} definition - device path definition
-# @param {String} definition.image - path to the image
+# @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
 # @param {Object} [definition.partition] - partition definition
 # @param {String} definition.path - directory path
 #
@@ -212,7 +273,10 @@ exports.replace = (definition, search, replace) ->
 # 	console.log(files)
 ###
 exports.listDirectory = (definition) ->
-	driver.interact(definition.image, definition.partition).then (fat) ->
-		fat.readdirAsync(definition.path).filter (file) ->
-			return not _.startsWith(file, '.')
-		.tap(fat.closeDriver)
+	checkImageType(definition.image)
+	if _.isString(definition.image)
+		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
+			disk = new filedisk.FileDisk(fd)
+			listDirectory(disk, definition.partition, definition.path)
+	else if definition.image instanceof filedisk.Disk
+		listDirectory(definition.image, definition.partition, definition.path)
