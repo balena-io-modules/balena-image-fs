@@ -18,63 +18,87 @@ partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
 fs = Promise.promisifyAll(require('fs'))
 fatfs = require('fatfs')
+ext2fs = Promise.promisifyAll(require('ext2fs'))
+magic = Promise.promisifyAll(require('mmmagic'))
 
 SECTOR_SIZE = 512
 
-###*
-# @summary Get a fatfs driver given a file descriptor
-# @protected
-# @function
-#
-# @param {filedisk.Disk} disk - filedisk.Disk instance
-# @param {Number} offset - offset of the image
-# @param {Number} size - size of the image
-# @returns {Object} the fatfs driver
-#
-# @example
-# disk = new filedisk.FileDisk(fd)
-# fatDriver = getDriver(disk, 0, 2048)
-###
-getDriver = (disk, offset, size) ->
-	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
-	{
-		sectorSize: SECTOR_SIZE
-		numSectors: size / SECTOR_SIZE
-		readSectors: (sector, dest, callback) ->
-			disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
-		writeSectors: (sector, data, callback) ->
-			disk.write(data, 0, data.length, sectorPosition(sector), callback)
-	}
+MAGIC_OPTS = (
+	magic.MAGIC_NO_CHECK_TAR |
+	magic.MAGIC_NO_CHECK_ENCODING |
+	magic.MAGIC_NO_CHECK_TOKENS |
+	magic.MAGIC_NO_CHECK_CDF |
+	magic.MAGIC_NO_CHECK_TEXT |
+	magic.MAGIC_NO_CHECK_ELF |
+	magic.MAGIC_NO_CHECK_APPTYPE
+)
+DETECTOR = new magic.Magic(MAGIC_OPTS)
+
+KNOWN_FILESYSTEMS =
+	'node-ext2fs': [ 'ext2', 'ext3', 'ext4' ]
+	'fatfs': [ 'FAT' ]
+
+detectDriver = (mime) ->
+	for own driver, filesystems of KNOWN_FILESYSTEMS
+		for filesystem in filesystems
+			if mime.indexOf(filesystem) != -1
+				return driver
+
+detectFS = (disk, offset, size) ->
+	disk = Promise.promisifyAll(disk, multiArgs: true)
+	size = Math.min(size, 2048)
+	buf = Buffer.allocUnsafe(size)
+	disk.readAsync(buf, 0, size, offset)
+	.then ->
+		DETECTOR.detectAsync(buf)
+	.then (mime) ->
+		detectDriver(mime)
 
 ###*
-# @summary Get a fatfs driver from a file
+# @summary Get a fatfs / node-ext2fs driver from a file
 # @protected
 # @function
 #
 # @param {filedisk.Disk} disk - filedisk.Disk instance
 # @param {Number} offset - offset of the image
 # @param {Number} size - size of the image
-# @returns {Promise<Object>} fatfs filesystem object
-#
-# @todo Test this.
+# @returns {disposer<Object>} a bluebird diposer of a node fs like interface
 #
 # @example
 # Promise.using openFile('my/file', 'r+'), (fd) ->
 #     disk = new filedisk.FileDisk(fd)
-#     createDriverFromFile(disk)
-#     .then (driver) ->
+#     Promise.using createDriverFromFile(disk), (driver) ->
 # 	      console.log(driver)
 ###
 createDriverFromFile = (disk, offset, size) ->
-	driver = getDriver(disk, offset, size)
-	fat = fatfs.createFileSystem(driver)
-	Promise.fromNode (callback) ->
-		fat.on('error', callback)
-		fat.on 'ready', ->
-			callback(null, Promise.promisifyAll(fat))
+	detectFS(disk, offset, size)
+	.then (driver) ->
+		if driver == 'fatfs'
+			sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
+			fat = fatfs.createFileSystem
+				sectorSize: SECTOR_SIZE
+				numSectors: size / SECTOR_SIZE
+				readSectors: (sector, dest, callback) ->
+					disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
+				writeSectors: (sector, data, callback) ->
+					disk.write(data, 0, data.length, sectorPosition(sector), callback)
+			return Promise.fromNode (callback) ->
+				fat.on('error', callback)
+				fat.on 'ready', ->
+					callback(null, Promise.promisifyAll(fat))
+			.disposer ->
+				return
+		else if driver == 'node-ext2fs'
+			ext2fs.mountAsync(disk, offset: offset)
+			.then (fs_) ->
+				Promise.promisifyAll(fs_)
+			.disposer (fs_) ->
+				ext2fs.umountAsync(fs_)
+		else
+			throw new Error('Unsupported filesystem.')
 
 ###*
-# @summary Get a fs instance pointing to a FAT partition
+# @summary Get a bluebird disposer of an fs instance pointing to a FAT or ext{2,3,4} partition
 # @protected
 # @function
 #
@@ -84,16 +108,15 @@ createDriverFromFile = (disk, offset, size) ->
 # @param {filedisk.Disk} disk - filedisk.Disk instance
 # @param {Object} [definition] - partition definition
 #
-# @returns {Promise<Object>} filesystem object
+# @returns {disposer<Object>} filesystem object
 #
 # @example
 # Promise.using filedisk.openFile('foo/bar.img', 'r+'), (fd) ->
 #     disk = new filedisk.FileDisk(fd)
-#     driver.interact(disk, primary: 1)
-#     .then (fs) ->
+#     Promise.using driver.interact(disk, primary: 1), (fs) ->
 # 	      fs.readdirAsync('/')
-#         .then (files) ->
-# 		      console.log(files)
+#     .then (files) ->
+#         console.log(files)
 ###
 exports.interact = (disk, definition) ->
 	disk = Promise.promisifyAll(disk)

@@ -31,20 +31,42 @@ Documentation
 
 
 * [imagefs](#module_imagefs)
-    * [.read(definition)](#module_imagefs.read) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
-    * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.interact(disk, partition)](#module_imagefs.interact) ⇒ <code>bluebird.disposer.&lt;fs&gt;</code>
+    * [.read(definition)](#module_imagefs.read) ⇒ <code>bluebird.disposer.&lt;ReadStream&gt;</code>
+    * [.write(definition, stream)](#module_imagefs.write) ⇒ <code>Promise</code>
     * [.readFile(definition)](#module_imagefs.readFile) ⇒ <code>Promise.&lt;String&gt;</code>
     * [.writeFile(definition, contents)](#module_imagefs.writeFile) ⇒ <code>Promise</code>
-    * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
-    * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+    * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise</code>
+    * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise</code>
     * [.listDirectory(definition)](#module_imagefs.listDirectory) ⇒ <code>Promise.&lt;Array.&lt;String&gt;&gt;</code>
+    * [.close()](#module_imagefs.close) ⇒ <code>Promise</code>
 
+<a name="module_imagefs.interact"></a>
+
+### imagefs.interact(disk, partition) ⇒ <code>bluebird.disposer.&lt;fs&gt;</code>
+**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Summary**: Get a bluebird.disposer of a node fs like interface for a partition  
+**Returns**: <code>bluebird.disposer.&lt;fs&gt;</code> - node fs like interface  
+**Access:** public  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| disk | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| partition | <code>Object</code> | partition definition |
+
+**Example**  
+```js
+Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
+  fs.readFileAsync('/bar/qux')
+  .then (contents) ->
+    console.log(contents)
+```
 <a name="module_imagefs.read"></a>
 
-### imagefs.read(definition) ⇒ <code>Promise.&lt;ReadStream&gt;</code>
+### imagefs.read(definition) ⇒ <code>bluebird.disposer.&lt;ReadStream&gt;</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Get a device file readable stream  
-**Returns**: <code>Promise.&lt;ReadStream&gt;</code> - file stream  
+**Returns**: <code>bluebird.disposer.&lt;ReadStream&gt;</code> - file stream  
 **Access:** public  
 
 | Param | Type | Description |
@@ -56,18 +78,21 @@ Documentation
 
 **Example**  
 ```js
-imagefs.read
+disposer = imagefs.read
 	image: '/foo/bar.img'
 	partition:
 		primary: 4
 		logical: 1
 	path: '/baz/qux'
-.then (stream) ->
-	stream.pipe(fs.createWriteStream('/bar/qux'))
+
+Promise.using disposer, (stream) ->
+  out = fs.createWriteStream('/bar/qux')
+  stream.pipe(out)
+  utils.waitStream(out)
 ```
 <a name="module_imagefs.write"></a>
 
-### imagefs.write(definition, stream) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+### imagefs.write(definition, stream) ⇒ <code>Promise</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Write a stream to a device file  
 **Access:** public  
@@ -141,7 +166,7 @@ imagefs.writeFile
 ```
 <a name="module_imagefs.copy"></a>
 
-### imagefs.copy(input, output) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+### imagefs.copy(input, output) ⇒ <code>Promise</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Copy a device file  
 **Access:** public  
@@ -173,7 +198,7 @@ imagefs.copy
 ```
 <a name="module_imagefs.replace"></a>
 
-### imagefs.replace(definition, search, replace) ⇒ <code>Promise.&lt;WriteStream&gt;</code>
+### imagefs.replace(definition, search, replace) ⇒ <code>Promise</code>
 **Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
 **Summary**: Perform search and replacement in a file  
 **Access:** public  
@@ -222,6 +247,12 @@ imagefs.listDirectory
 .then (files) ->
 	console.log(files)
 ```
+<a name="module_imagefs.close"></a>
+
+### imagefs.close() ⇒ <code>Promise</code>
+**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Summary**: Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.  
+**Access:** public  
 
 Support
 -------

@@ -7,15 +7,15 @@ exports.expect = (input, output) ->
 	assert.deepEqual(input, output, chalk.red("Expected #{util.inspect(input)} to equal #{util.inspect(output)}"))
 
 exports.extract = (stream) ->
-	return new Promise (resolve, reject) ->
-		result = ''
+	new Promise (resolve, reject) ->
+		chunks = []
 		stream.on('error', reject)
 		stream.on 'data', (chunk) ->
-			result += chunk
+			chunks.push(chunk)
 		stream.on 'end', ->
-			resolve(result)
+			resolve(chunks.join(''))
 
 exports.waitStream = (stream) ->
-	return new Promise (resolve, reject) ->
+	new Promise (resolve, reject) ->
 		stream.on('error', reject)
 		stream.on('close', resolve)
