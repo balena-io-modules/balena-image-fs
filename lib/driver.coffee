@@ -26,26 +26,24 @@ SECTOR_SIZE = 512
 # @protected
 # @function
 #
-# @param {Object} fd - file descriptor
+# @param {filedisk.Disk} disk - filedisk.Disk instance
 # @param {Number} offset - offset of the image
 # @param {Number} size - size of the image
 # @returns {Object} the fatfs driver
 #
 # @example
-# fatDriver = driver.getDriver(fd, 0, 2048)
+# disk = new filedisk.FileDisk(fd)
+# fatDriver = getDriver(disk, 0, 2048)
 ###
-exports.getDriver = (fd, offset, size) ->
-	return {
+getDriver = (disk, offset, size) ->
+	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
+	{
 		sectorSize: SECTOR_SIZE
 		numSectors: size / SECTOR_SIZE
 		readSectors: (sector, dest, callback) ->
-			position = offset + sector * SECTOR_SIZE
-			fs.read fd, dest, 0, dest.length, position, (error, bytesRead, buffer) ->
-				return callback(error, buffer)
-
+			disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
 		writeSectors: (sector, data, callback) ->
-			position = offset + sector * SECTOR_SIZE
-			fs.write(fd, data, 0, data.length, position, callback)
+			disk.write(data, 0, data.length, sectorPosition(sector), callback)
 	}
 
 ###*
@@ -53,7 +51,7 @@ exports.getDriver = (fd, offset, size) ->
 # @protected
 # @function
 #
-# @param {String} file - file path
+# @param {filedisk.Disk} disk - filedisk.Disk instance
 # @param {Number} offset - offset of the image
 # @param {Number} size - size of the image
 # @returns {Promise<Object>} fatfs filesystem object
@@ -61,23 +59,19 @@ exports.getDriver = (fd, offset, size) ->
 # @todo Test this.
 #
 # @example
-# driver.createDriverFromFile('my/file').then (driver) ->
-# 	console.log(driver)
+# Promise.using openFile('my/file', 'r+'), (fd) ->
+#     disk = new filedisk.FileDisk(fd)
+#     createDriverFromFile(disk)
+#     .then (driver) ->
+# 	      console.log(driver)
 ###
-exports.createDriverFromFile = (file, offset, size) ->
-	fs.openAsync(file, 'r+').then (fd) ->
-		driver = exports.getDriver(fd, offset, size)
-		fat = fatfs.createFileSystem(driver)
-
-		# Not closing it might cause EPERM errors
-		# when unlinking the file
-		fat.closeDriver = ->
-			return fs.closeAsync(fd)
-
-		Promise.fromNode (callback) ->
-			fat.on('error', callback)
-			fat.on 'ready', ->
-				return callback(null, Promise.promisifyAll(fat))
+createDriverFromFile = (disk, offset, size) ->
+	driver = getDriver(disk, offset, size)
+	fat = fatfs.createFileSystem(driver)
+	Promise.fromNode (callback) ->
+		fat.on('error', callback)
+		fat.on 'ready', ->
+			callback(null, Promise.promisifyAll(fat))
 
 ###*
 # @summary Get a fs instance pointing to a FAT partition
@@ -87,23 +81,29 @@ exports.createDriverFromFile = (file, offset, size) ->
 # @description
 # If no partition definition is passed, an hddimg partition file is assumed.
 #
-# @param {String} image - image path
+# @param {filedisk.Disk} disk - filedisk.Disk instance
 # @param {Object} [definition] - partition definition
 #
 # @returns {Promise<Object>} filesystem object
 #
 # @example
-# driver.interact('foo/bar.img', primary: 1).then (fs) ->
-# 	fs.readdirAsync('/').then (files) ->
-# 		console.log(files)
+# Promise.using filedisk.openFile('foo/bar.img', 'r+'), (fd) ->
+#     disk = new filedisk.FileDisk(fd)
+#     driver.interact(disk, primary: 1)
+#     .then (fs) ->
+# 	      fs.readdirAsync('/')
+#         .then (files) ->
+# 		      console.log(files)
 ###
-exports.interact = (image, definition) ->
+exports.interact = (disk, definition) ->
+	disk = Promise.promisifyAll(disk)
 	Promise.try ->
-		return partitioninfo.get(image, definition) if definition?
-
-		# Handle partition files (*.hddimg)
-		return fs.statAsync(image).get('size').then (size) ->
-			return { offset: 0, size: size }
-
+		if definition
+			partitioninfo.get(disk, definition)
+		else
+			# Handle partition files (*.hddimg)
+			disk.getCapacityAsync()
+			.then (size) ->
+				{ offset: 0, size: size }
 	.then (information) ->
-		return exports.createDriverFromFile(image, information.offset, information.size)
+		createDriverFromFile(disk, information.offset, information.size)

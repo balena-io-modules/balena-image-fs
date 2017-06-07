@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var Promise, SECTOR_SIZE, fatfs, fs, partitioninfo;
+var Promise, SECTOR_SIZE, createDriverFromFile, fatfs, fs, getDriver, partitioninfo;
 
 partitioninfo = require('partitioninfo');
 
@@ -32,30 +32,29 @@ SECTOR_SIZE = 512;
  * @protected
  * @function
  *
- * @param {Object} fd - file descriptor
+ * @param {filedisk.Disk} disk - filedisk.Disk instance
  * @param {Number} offset - offset of the image
  * @param {Number} size - size of the image
  * @returns {Object} the fatfs driver
  *
  * @example
- * fatDriver = driver.getDriver(fd, 0, 2048)
+ * disk = new filedisk.FileDisk(fd)
+ * fatDriver = getDriver(disk, 0, 2048)
  */
 
-exports.getDriver = function(fd, offset, size) {
+getDriver = function(disk, offset, size) {
+  var sectorPosition;
+  sectorPosition = function(sector) {
+    return offset + sector * SECTOR_SIZE;
+  };
   return {
     sectorSize: SECTOR_SIZE,
     numSectors: size / SECTOR_SIZE,
     readSectors: function(sector, dest, callback) {
-      var position;
-      position = offset + sector * SECTOR_SIZE;
-      return fs.read(fd, dest, 0, dest.length, position, function(error, bytesRead, buffer) {
-        return callback(error, buffer);
-      });
+      return disk.read(dest, 0, dest.length, sectorPosition(sector), callback);
     },
     writeSectors: function(sector, data, callback) {
-      var position;
-      position = offset + sector * SECTOR_SIZE;
-      return fs.write(fd, data, 0, data.length, position, callback);
+      return disk.write(data, 0, data.length, sectorPosition(sector), callback);
     }
   };
 };
@@ -66,7 +65,7 @@ exports.getDriver = function(fd, offset, size) {
  * @protected
  * @function
  *
- * @param {String} file - file path
+ * @param {filedisk.Disk} disk - filedisk.Disk instance
  * @param {Number} offset - offset of the image
  * @param {Number} size - size of the image
  * @returns {Promise<Object>} fatfs filesystem object
@@ -74,23 +73,21 @@ exports.getDriver = function(fd, offset, size) {
  * @todo Test this.
  *
  * @example
- * driver.createDriverFromFile('my/file').then (driver) ->
- * 	console.log(driver)
+ * Promise.using openFile('my/file', 'r+'), (fd) ->
+ *     disk = new filedisk.FileDisk(fd)
+ *     createDriverFromFile(disk)
+ *     .then (driver) ->
+ * 	      console.log(driver)
  */
 
-exports.createDriverFromFile = function(file, offset, size) {
-  return fs.openAsync(file, 'r+').then(function(fd) {
-    var driver, fat;
-    driver = exports.getDriver(fd, offset, size);
-    fat = fatfs.createFileSystem(driver);
-    fat.closeDriver = function() {
-      return fs.closeAsync(fd);
-    };
-    return Promise.fromNode(function(callback) {
-      fat.on('error', callback);
-      return fat.on('ready', function() {
-        return callback(null, Promise.promisifyAll(fat));
-      });
+createDriverFromFile = function(disk, offset, size) {
+  var driver, fat;
+  driver = getDriver(disk, offset, size);
+  fat = fatfs.createFileSystem(driver);
+  return Promise.fromNode(function(callback) {
+    fat.on('error', callback);
+    return fat.on('ready', function() {
+      return callback(null, Promise.promisifyAll(fat));
     });
   });
 };
@@ -104,29 +101,35 @@ exports.createDriverFromFile = function(file, offset, size) {
  * @description
  * If no partition definition is passed, an hddimg partition file is assumed.
  *
- * @param {String} image - image path
+ * @param {filedisk.Disk} disk - filedisk.Disk instance
  * @param {Object} [definition] - partition definition
  *
  * @returns {Promise<Object>} filesystem object
  *
  * @example
- * driver.interact('foo/bar.img', primary: 1).then (fs) ->
- * 	fs.readdirAsync('/').then (files) ->
- * 		console.log(files)
+ * Promise.using filedisk.openFile('foo/bar.img', 'r+'), (fd) ->
+ *     disk = new filedisk.FileDisk(fd)
+ *     driver.interact(disk, primary: 1)
+ *     .then (fs) ->
+ * 	      fs.readdirAsync('/')
+ *         .then (files) ->
+ * 		      console.log(files)
  */
 
-exports.interact = function(image, definition) {
+exports.interact = function(disk, definition) {
+  disk = Promise.promisifyAll(disk);
   return Promise["try"](function() {
-    if (definition != null) {
-      return partitioninfo.get(image, definition);
+    if (definition) {
+      return partitioninfo.get(disk, definition);
+    } else {
+      return disk.getCapacityAsync().then(function(size) {
+        return {
+          offset: 0,
+          size: size
+        };
+      });
     }
-    return fs.statAsync(image).get('size').then(function(size) {
-      return {
-        offset: 0,
-        size: size
-      };
-    });
   }).then(function(information) {
-    return exports.createDriverFromFile(image, information.offset, information.size);
+    return createDriverFromFile(disk, information.offset, information.size);
   });
 };

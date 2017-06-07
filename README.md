@@ -50,7 +50,7 @@ Documentation
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | file path |
 
@@ -75,7 +75,7 @@ imagefs.read
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | file path |
 | stream | <code>ReadStream</code> | contents stream |
@@ -100,7 +100,7 @@ imagefs.write
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | file path |
 
@@ -125,7 +125,7 @@ imagefs.readFile
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | file path |
 | contents | <code>String</code> | contents string |
@@ -149,7 +149,7 @@ imagefs.writeFile
 | Param | Type | Description |
 | --- | --- | --- |
 | input | <code>Object</code> | input device path definition |
-| input.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [input.partition] | <code>Object</code> | partition definition |
 | input.path | <code>String</code> | file path |
 | output | <code>Object</code> | output device path definition |
@@ -181,7 +181,7 @@ imagefs.copy
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | file path |
 | search | <code>String</code> &#124; <code>RegExp</code> | search term |
@@ -207,7 +207,7 @@ imagefs.replace
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> | path to the image |
+| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Object</code> | partition definition |
 | definition.path | <code>String</code> | directory path |
 

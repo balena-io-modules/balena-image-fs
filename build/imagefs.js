@@ -18,15 +18,25 @@ limitations under the License.
 /**
  * @module imagefs
  */
-var Promise, driver, replaceStream, _;
-
-_ = require('lodash');
-
-replaceStream = require('replacestream');
+var Promise, checkImageType, driver, filedisk, fs, listDirectory, read, readFile, replaceStream, write, writeFile, _;
 
 Promise = require('bluebird');
 
+_ = require('lodash');
+
+filedisk = require('file-disk');
+
+fs = Promise.promisifyAll(require('fs'));
+
+replaceStream = require('replacestream');
+
 driver = require('./driver');
+
+checkImageType = function(image) {
+  if (!(_.isString(image) || image instanceof filedisk.Disk)) {
+    throw new Error('image must be a String (file path) or a filedisk.Disk instance');
+  }
+};
 
 
 /**
@@ -35,7 +45,7 @@ driver = require('./driver');
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
@@ -53,8 +63,27 @@ driver = require('./driver');
  */
 
 exports.read = function(definition) {
-  return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return fat.createReadStream(definition.path).on('end', fat.closeDriver);
+  checkImageType(definition.image);
+  if (_.isString(definition.image)) {
+    return fs.openAsync(definition.image, 'r').then(function(fd) {
+      var close, disk;
+      close = function() {
+        return fs.closeAsync(fd);
+      };
+      disk = new filedisk.FileDisk(fd, true);
+      return read(disk, definition.partition, definition.path).tap(function(stream) {
+        stream.on('end', close);
+        return stream.on('error', close);
+      });
+    });
+  } else if (definition.image instanceof filedisk.Disk) {
+    return read(definition.image, definition.partition, definition.path);
+  }
+};
+
+read = function(disk, partition, path) {
+  return driver.interact(disk, partition).then(function(fat) {
+    return fat.createReadStream(path);
   });
 };
 
@@ -65,7 +94,7 @@ exports.read = function(definition) {
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
@@ -82,8 +111,27 @@ exports.read = function(definition) {
  */
 
 exports.write = function(definition, stream) {
-  return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return stream.pipe(fat.createWriteStream(definition.path)).on('close', fat.closeDriver);
+  checkImageType(definition.image);
+  if (_.isString(definition.image)) {
+    return fs.openAsync(definition.image, 'r+').then(function(fd) {
+      var close, disk;
+      close = function() {
+        return fs.closeAsync(fd);
+      };
+      disk = new filedisk.FileDisk(fd, false, false);
+      return write(disk, definition.partition, definition.path, stream).tap(function(writeStream) {
+        writeStream.on('close', close);
+        return writeStream.on('error', close);
+      });
+    });
+  } else if (definition.image instanceof filedisk.Disk) {
+    return write(definition.image, definition.partition, definition.path, stream);
+  }
+};
+
+write = function(disk, partition, path, stream) {
+  return driver.interact(disk, partition).then(function(fat) {
+    return stream.pipe(fat.createWriteStream(path));
   });
 };
 
@@ -94,7 +142,7 @@ exports.write = function(definition, stream) {
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
@@ -112,10 +160,23 @@ exports.write = function(definition, stream) {
  */
 
 exports.readFile = function(definition) {
-  return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return fat.readFileAsync(definition.path, {
+  checkImageType(definition.image);
+  if (_.isString(definition.image)) {
+    return Promise.using(filedisk.openFile(definition.image, 'r'), function(fd) {
+      var disk;
+      disk = new filedisk.FileDisk(fd);
+      return readFile(disk, definition.partition, definition.path);
+    });
+  } else if (definition.image instanceof filedisk.Disk) {
+    return readFile(definition.image, definition.partition, definition.path);
+  }
+};
+
+readFile = function(disk, partition, path) {
+  return driver.interact(disk, partition).then(function(fat) {
+    return fat.readFileAsync(path, {
       encoding: 'utf8'
-    }).tap(fat.closeDriver);
+    });
   });
 };
 
@@ -126,7 +187,7 @@ exports.readFile = function(definition) {
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
@@ -143,8 +204,21 @@ exports.readFile = function(definition) {
  */
 
 exports.writeFile = function(definition, contents) {
-  return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return fat.writeFileAsync(definition.path, contents).tap(fat.closeDriver);
+  checkImageType(definition.image);
+  if (_.isString(definition.image)) {
+    return Promise.using(filedisk.openFile(definition.image, 'r+'), function(fd) {
+      var disk;
+      disk = new filedisk.FileDisk(fd);
+      return writeFile(disk, definition.partition, definition.path, contents);
+    });
+  } else if (definition.image instanceof filedisk.Disk) {
+    return writeFile(definition.image, definition.partition, definition.path, contents);
+  }
+};
+
+writeFile = function(disk, partition, path, contents) {
+  return driver.interact(disk, partition).then(function(fat) {
+    return fat.writeFileAsync(path, contents);
   });
 };
 
@@ -155,7 +229,7 @@ exports.writeFile = function(definition, contents) {
  * @public
  *
  * @param {Object} input - input device path definition
- * @param {String} input.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [input.partition] - partition definition
  * @param {String} input.path - file path
  *
@@ -193,7 +267,7 @@ exports.copy = function(input, output) {
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - file path
  *
@@ -226,7 +300,7 @@ exports.replace = function(definition, search, replace) {
  * @public
  *
  * @param {Object} definition - device path definition
- * @param {String} definition.image - path to the image
+ * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
  * @param {Object} [definition.partition] - partition definition
  * @param {String} definition.path - directory path
  *
@@ -244,9 +318,22 @@ exports.replace = function(definition, search, replace) {
  */
 
 exports.listDirectory = function(definition) {
-  return driver.interact(definition.image, definition.partition).then(function(fat) {
-    return fat.readdirAsync(definition.path).filter(function(file) {
-      return !_.startsWith(file, '.');
-    }).tap(fat.closeDriver);
+  checkImageType(definition.image);
+  if (_.isString(definition.image)) {
+    return Promise.using(filedisk.openFile(definition.image, 'r+'), function(fd) {
+      var disk;
+      disk = new filedisk.FileDisk(fd);
+      return listDirectory(disk, definition.partition, definition.path);
+    });
+  } else if (definition.image instanceof filedisk.Disk) {
+    return listDirectory(definition.image, definition.partition, definition.path);
+  }
+};
+
+listDirectory = function(disk, partition, path) {
+  return driver.interact(disk, partition).then(function(fat) {
+    return fat.readdirAsync(path);
+  }).filter(function(file) {
+    return !_.startsWith(file, '.');
   });
 };
