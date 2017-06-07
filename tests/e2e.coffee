@@ -47,7 +47,8 @@ testBoth = (title, fn, images...) ->
 testBoth(
 	'should list files from a raspberrypi image'
 	(input) ->
-		imagefs.listDirectory(input).then (contents) ->
+		imagefs.listDirectory(input)
+		.then (contents) ->
 			utils.expect contents, [
 				'ds1307-rtc-overlay.dtb',
 				'hifiberry-amp-overlay.dtb',
@@ -73,7 +74,9 @@ testBoth(
 testBoth(
 	'should read a config.json from a raspberrypi'
 	(input) ->
-		imagefs.read(input).then(utils.extract).then (contents) ->
+		imagefs.read(input)
+		.then(utils.extract)
+		.then (contents) ->
 			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
@@ -87,7 +90,8 @@ testBoth(
 testBoth(
 	'should read a config.json from a raspberrypi using readFile'
 	(input) ->
-		imagefs.readFile(input).then (contents) ->
+		imagefs.readFile(input)
+		.then (contents) ->
 			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
@@ -101,9 +105,13 @@ testBoth(
 testBoth(
 	'should copy files between different partitions in a raspberrypi'
 	(input, output) ->
-		imagefs.copy(input, output).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+		imagefs.copy(input, output)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -122,9 +130,13 @@ testBoth(
 testBoth(
 	'should replace files between different partitions in a raspberrypi'
 	(input, output) ->
-		imagefs.copy(input, output).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+		imagefs.copy(input, output)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -144,9 +156,13 @@ testBoth(
 	'should copy a local file to a raspberry pi partition'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -159,9 +175,11 @@ testBoth(
 testBoth(
 	'should copy text to a raspberry pi partition using writeFile'
 	(output) ->
-		imagefs.writeFile(output, 'Lorem ipsum dolor sit amet\n').then ->
-			imagefs.readFile(output).then (contents) ->
-				utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+		imagefs.writeFile(output, 'Lorem ipsum dolor sit amet\n')
+		.then ->
+			imagefs.readFile(output)
+		.then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -177,9 +195,11 @@ testBoth(
 		output = path.join(__dirname, 'output.tmp')
 		imagefs.read(input).then (inputStream) ->
 			return inputStream.pipe(fs.createWriteStream(output))
-		.then(utils.waitStream).then ->
+		.then(utils.waitStream)
+		.then ->
 			fs.createReadStream(output)
-		.then(utils.extract).then (contents) ->
+		.then(utils.extract)
+		.then (contents) ->
 			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 			fs.unlinkAsync(output)
 	{
@@ -194,9 +214,13 @@ testBoth(
 	'should replace a file in an edison config partition with a local file'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents.replace('\r', ''), 'Lorem ipsum dolor sit amet\n')
 	{
 		image: EDISON
 		path: '/config.json'
@@ -206,9 +230,13 @@ testBoth(
 testBoth(
 	'should copy a file from an edison partition to a raspberry pi'
 	(input, output) ->
-		imagefs.copy(input, output).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(JSON.parse(contents), files.edison['config.json'])
+		imagefs.copy(input, output)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(JSON.parse(contents), files.edison['config.json'])
 	{
 		image: EDISON
 		path: '/config.json'
@@ -225,9 +253,13 @@ testBoth(
 testBoth(
 	'should copy a file from a raspberry pi to an edison config partition'
 	(input, output) ->
-		imagefs.copy(input, output).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+		imagefs.copy(input, output)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -244,9 +276,13 @@ testBoth(
 	'should copy a local file to an edison config partition'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.read(output).then(utils.extract).then (contents) ->
-				utils.expect(contents, 'Lorem ipsum dolor sit amet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'Lorem ipsum dolor sit amet\n')
 	{
 		image: EDISON
 		path: '/lorem.txt'
@@ -256,7 +292,9 @@ testBoth(
 testBoth(
 	'should read a config.json from a edison config partition'
 	(input) ->
-		imagefs.read(input).then(utils.extract).then (contents) ->
+		imagefs.read(input)
+		.then(utils.extract)
+		.then (contents) ->
 			utils.expect(JSON.parse(contents), files.edison['config.json'])
 	{
 		image: EDISON
@@ -268,11 +306,14 @@ testBoth(
 	'should copy a file from a edison config partition to a local file'
 	(input) ->
 		output = path.join(__dirname, 'output.tmp')
-		imagefs.read(input).then (inputStream) ->
-			return inputStream.pipe(fs.createWriteStream(output))
-		.then(utils.waitStream).then ->
+		imagefs.read(input)
+		.then (inputStream) ->
+			inputStream.pipe(fs.createWriteStream(output))
+		.then(utils.waitStream)
+		.then ->
 			fs.createReadStream(output)
-		.then(utils.extract).then (contents) ->
+		.then(utils.extract)
+		.then (contents) ->
 			utils.expect(JSON.parse(contents), files.edison['config.json'])
 			fs.unlinkAsync(output)
 	{
@@ -285,10 +326,16 @@ testBoth(
 	'should replace a file in a raspberry pi partition'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.replace(output, 'Lorem', 'Elementum').then(utils.waitStream).then ->
-				imagefs.read(output).then(utils.extract).then (contents) ->
-					utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.replace(output, 'Lorem', 'Elementum')
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -300,9 +347,13 @@ testBoth(
 testBoth(
 	'should replace cmdline.txt in a raspberry pi partition'
 	(cmdline) ->
-		imagefs.replace(cmdline, 'lpm_enable=0', 'lpm_enable=1').then(utils.waitStream).then ->
-			imagefs.read(cmdline).then(utils.extract).then (contents) ->
-				utils.expect(contents, 'dwc_otg.lpm_enable=1 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
+		imagefs.replace(cmdline, 'lpm_enable=0', 'lpm_enable=1')
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(cmdline)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'dwc_otg.lpm_enable=1 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -315,10 +366,16 @@ testBoth(
 	'should replace a file in a raspberry pi partition with a regex'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.replace(output, /m/g, 'n').then(utils.waitStream).then ->
-				imagefs.read(output).then(utils.extract).then (contents) ->
-					utils.expect(contents, 'Loren ipsun dolor sit anet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.replace(output, /m/g, 'n')
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'Loren ipsun dolor sit anet\n')
 	{
 		image: RASPBERRYPI
 		partition:
@@ -331,10 +388,16 @@ testBoth(
 	'should replace a file in an edison partition'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.replace(output, 'Lorem', 'Elementum').then(utils.waitStream).then ->
-				imagefs.read(output).then(utils.extract).then (contents) ->
-					utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.replace(output, 'Lorem', 'Elementum')
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'Elementum ipsum dolor sit amet\n')
 	{
 		image: EDISON
 		path: '/lorem.txt'
@@ -345,10 +408,16 @@ testBoth(
 	'should replace a file in an edison partition with a regex'
 	(output) ->
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream).then(utils.waitStream).then ->
-			imagefs.replace(output, /m/g, 'n').then(utils.waitStream).then ->
-				imagefs.read(output).then(utils.extract).then (contents) ->
-					utils.expect(contents, 'Loren ipsun dolor sit anet\n')
+		imagefs.write(output, inputStream)
+		.then(utils.waitStream)
+		.then ->
+			imagefs.replace(output, /m/g, 'n')
+		.then(utils.waitStream)
+		.then ->
+			imagefs.read(output)
+		.then(utils.extract)
+		.then (contents) ->
+			utils.expect(contents, 'Loren ipsun dolor sit anet\n')
 	{
 		image: EDISON
 		path: '/lorem.txt'
