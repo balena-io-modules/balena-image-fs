@@ -350,8 +350,6 @@ exports.replace = function(definition, search, replace) {
 listDirectory = function(disk, partition, path) {
   return Promise.using(driver.interact(disk, partition), function(fs_) {
     return fs_.readdirAsync(path);
-  }).filter(function(file) {
-    return !_.startsWith(file, '.');
   });
 };
 

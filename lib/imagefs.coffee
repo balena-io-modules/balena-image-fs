@@ -296,8 +296,6 @@ exports.replace = (definition, search, replace) ->
 listDirectory = (disk, partition, path) ->
 	Promise.using driver.interact(disk, partition), (fs_) ->
 		fs_.readdirAsync(path)
-	.filter (file) ->
-		return not _.startsWith(file, '.')
 
 ###*
 # @summary List the contents of a directory

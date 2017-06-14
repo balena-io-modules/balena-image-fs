@@ -90,6 +90,18 @@ testBoth(
 		imagefs.listDirectory(input)
 		.then (contents) ->
 			utils.expect contents, [
+				'._ds1307-rtc-overlay.dtb',
+				'._hifiberry-amp-overlay.dtb',
+				'._hifiberry-dac-overlay.dtb',
+				'._hifiberry-dacplus-overlay.dtb',
+				'._hifiberry-digi-overlay.dtb',
+				'._iqaudio-dac-overlay.dtb',
+				'._iqaudio-dacplus-overlay.dtb',
+				'._lirc-rpi-overlay.dtb',
+				'._pcf8523-rtc-overlay.dtb',
+				'._pps-gpio-overlay.dtb',
+				'._w1-gpio-overlay.dtb',
+				'._w1-gpio-pullup-overlay.dtb',
 				'ds1307-rtc-overlay.dtb',
 				'hifiberry-amp-overlay.dtb',
 				'hifiberry-dac-overlay.dtb',
