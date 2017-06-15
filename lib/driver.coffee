@@ -19,40 +19,8 @@ Promise = require('bluebird')
 fs = Promise.promisifyAll(require('fs'))
 fatfs = require('fatfs')
 ext2fs = Promise.promisifyAll(require('ext2fs'))
-magic = Promise.promisifyAll(require('mmmagic'))
 
 SECTOR_SIZE = 512
-
-MAGIC_OPTS = (
-	magic.MAGIC_NO_CHECK_TAR |
-	magic.MAGIC_NO_CHECK_ENCODING |
-	magic.MAGIC_NO_CHECK_TOKENS |
-	magic.MAGIC_NO_CHECK_CDF |
-	magic.MAGIC_NO_CHECK_TEXT |
-	magic.MAGIC_NO_CHECK_ELF |
-	magic.MAGIC_NO_CHECK_APPTYPE
-)
-DETECTOR = new magic.Magic(MAGIC_OPTS)
-
-KNOWN_FILESYSTEMS =
-	'node-ext2fs': [ 'ext2', 'ext3', 'ext4' ]
-	'fatfs': [ 'FAT' ]
-
-detectDriver = (mime) ->
-	for own driver, filesystems of KNOWN_FILESYSTEMS
-		for filesystem in filesystems
-			if mime.indexOf(filesystem) != -1
-				return driver
-
-detectFS = (disk, offset, size) ->
-	disk = Promise.promisifyAll(disk, multiArgs: true)
-	size = Math.min(size, 2048)
-	buf = Buffer.alloc(size)
-	disk.readAsync(buf, 0, size, offset)
-	.then ->
-		DETECTOR.detectAsync(buf)
-	.then (mime) ->
-		detectDriver(mime)
 
 createFatDriverDisposer = (disk, offset, size) ->
 	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
@@ -63,20 +31,22 @@ createFatDriverDisposer = (disk, offset, size) ->
 			disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
 		writeSectors: (sector, data, callback) ->
 			disk.write(data, 0, data.length, sectorPosition(sector), callback)
-	Promise.fromNode (callback) ->
-		fat.on('error', callback)
+	return new Promise (resolve, reject) ->
+		fat.on('error', reject)
 		fat.on 'ready', ->
-			callback(null, Promise.promisifyAll(fat))
-	.disposer ->
-		# fatfs doesn't require you to do anything to "umount" the filesystem.
-		return
+			resolve(fat)
+	.then (fat) ->
+		Promise.resolve(Promise.promisifyAll(fat))
+		.disposer ->
+			# fatfs doesn't require you to do anything to "umount" the filesystem.
+			return
 
 createExtDriverDisposer = (disk, offset, size) ->
 	ext2fs.mountAsync(disk, offset: offset)
 	.then (fs_) ->
-		Promise.promisifyAll(fs_)
-	.disposer (fs_) ->
-		ext2fs.umountAsync(fs_)
+		Promise.resolve(Promise.promisifyAll(fs_))
+		.disposer (fs_) ->
+			ext2fs.umountAsync(fs_)
 
 ###*
 # @summary Get a fatfs / node-ext2fs driver from a file
@@ -94,15 +64,19 @@ createExtDriverDisposer = (disk, offset, size) ->
 #     Promise.using createDriverFromFile(disk), (driver) ->
 # 	      console.log(driver)
 ###
-createDriverFromFile = (disk, offset, size) ->
-	detectFS(disk, offset, size)
-	.then (driver) ->
-		if driver == 'fatfs'
-			createFatDriverDisposer(disk, offset, size)
-		else if driver == 'node-ext2fs'
-			createExtDriverDisposer(disk, offset, size)
+createDriverFromFile = (disk, offset, size, type) ->
+	Promise.try ->
+		if type
+			if type == 0x83
+				createExtDriverDisposer(disk, offset, size)
+			else
+				createFatDriverDisposer(disk, offset, size)
 		else
-			throw new Error('Unsupported filesystem.')
+			createFatDriverDisposer(disk, offset, size)
+			.catch ->
+				createExtDriverDisposer(disk, offset, size)
+	.catch ->
+		throw new Error('Unsupported filesystem.')
 
 ###*
 # @summary Get a bluebird disposer of an fs instance pointing to a FAT or ext{2,3,4} partition
@@ -136,4 +110,4 @@ exports.interact = (disk, definition) ->
 			.then (size) ->
 				{ offset: 0, size: size }
 	.then (information) ->
-		createDriverFromFile(disk, information.offset, information.size)
+		createDriverFromFile(disk, information.offset, information.size, information.type)
