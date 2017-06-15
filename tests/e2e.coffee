@@ -128,7 +128,7 @@ testBoth(
 	(input) ->
 		imagefs.listDirectory(input)
 		.then (contents) ->
-			utils.expect(contents, [ 'lost+found' ])
+			utils.expect(contents, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition:
@@ -212,6 +212,29 @@ testBoth(
 			primary: 4
 			logical: 2
 		path: '/cmdline.txt'
+	}
+)
+
+testBoth(
+	'should copy files from ext to fat partitions in a raspberrypi'
+	(input, output) ->
+		imagefs.copy(input, output)
+		.then ->
+			imagefs.readFile(output)
+		.then (contents) ->
+			utils.expect(contents, 'one\n')
+	{
+		image: RASPBERRYPI
+		partition:
+			primary: 4
+			logical: 2
+		path: '/1'
+	}
+	{
+		image: RASPBERRYPI
+		partition:
+			primary: 1
+		path: '/1'
 	}
 )
 
@@ -534,7 +557,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'lost+found' ])
+				utils.expect(files, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition:
