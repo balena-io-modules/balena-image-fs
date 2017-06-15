@@ -47,12 +47,36 @@ detectDriver = (mime) ->
 detectFS = (disk, offset, size) ->
 	disk = Promise.promisifyAll(disk, multiArgs: true)
 	size = Math.min(size, 2048)
-	buf = Buffer.allocUnsafe(size)
+	buf = Buffer.alloc(size)
 	disk.readAsync(buf, 0, size, offset)
 	.then ->
 		DETECTOR.detectAsync(buf)
 	.then (mime) ->
 		detectDriver(mime)
+
+createFatDriverDisposer = (disk, offset, size) ->
+	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
+	fat = fatfs.createFileSystem
+		sectorSize: SECTOR_SIZE
+		numSectors: size / SECTOR_SIZE
+		readSectors: (sector, dest, callback) ->
+			disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
+		writeSectors: (sector, data, callback) ->
+			disk.write(data, 0, data.length, sectorPosition(sector), callback)
+	Promise.fromNode (callback) ->
+		fat.on('error', callback)
+		fat.on 'ready', ->
+			callback(null, Promise.promisifyAll(fat))
+	.disposer ->
+		# fatfs doesn't require you to do anything to "umount" the filesystem.
+		return
+
+createExtDriverDisposer = (disk, offset, size) ->
+	ext2fs.mountAsync(disk, offset: offset)
+	.then (fs_) ->
+		Promise.promisifyAll(fs_)
+	.disposer (fs_) ->
+		ext2fs.umountAsync(fs_)
 
 ###*
 # @summary Get a fatfs / node-ext2fs driver from a file
@@ -74,26 +98,9 @@ createDriverFromFile = (disk, offset, size) ->
 	detectFS(disk, offset, size)
 	.then (driver) ->
 		if driver == 'fatfs'
-			sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
-			fat = fatfs.createFileSystem
-				sectorSize: SECTOR_SIZE
-				numSectors: size / SECTOR_SIZE
-				readSectors: (sector, dest, callback) ->
-					disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
-				writeSectors: (sector, data, callback) ->
-					disk.write(data, 0, data.length, sectorPosition(sector), callback)
-			return Promise.fromNode (callback) ->
-				fat.on('error', callback)
-				fat.on 'ready', ->
-					callback(null, Promise.promisifyAll(fat))
-			.disposer ->
-				return
+			createFatDriverDisposer(disk, offset, size)
 		else if driver == 'node-ext2fs'
-			ext2fs.mountAsync(disk, offset: offset)
-			.then (fs_) ->
-				Promise.promisifyAll(fs_)
-			.disposer (fs_) ->
-				ext2fs.umountAsync(fs_)
+			createExtDriverDisposer(disk, offset, size)
 		else
 			throw new Error('Unsupported filesystem.')
 

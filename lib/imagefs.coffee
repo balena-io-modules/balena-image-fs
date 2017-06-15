@@ -85,8 +85,9 @@ read = (disk, partition, path) ->
 		(fs_) ->
 			Promise.resolve(fs_.createReadStream(path, autoClose: false))
 			.disposer (stream) ->
-				if stream.fd != undefined
-					fs_.closeAsync(stream.fd)
+				# streams returned by fatfs do not have a close method
+				if stream.closeAsync
+					stream.closeAsync()
 	)
 
 ###*
@@ -336,4 +337,4 @@ exports.listDirectory = (definition) ->
 # @returns {Promise}
 ###
 exports.close = ->
-	ext2fs.close()
+	_.once(ext2fs.close)()
