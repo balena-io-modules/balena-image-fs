@@ -37,18 +37,21 @@ composeDisposers = (outerDisposer, createInnerDisposer) ->
 	.then (outerDisposer) ->
 		outerDisposer._promise
 		.then (outerResult) ->
-			Promise.resolve(createInnerDisposer(outerResult))
-			.then (innerDisposer) ->
-				innerDisposer._promise
-				.then (innerResult) ->
-					Promise.resolve(innerResult)
-					.disposer (innerResult) ->
-						Promise.resolve(innerDisposer._data(innerResult))
-						.then ->
-							outerDisposer._data(outerResult)
+			Promise.try ->
+				Promise.resolve(createInnerDisposer(outerResult))
+				.then (innerDisposer) ->
+					innerDisposer._promise
+					.then ->
+						[ innerDisposer, innerDisposer._promise ]
 			.catch (err) ->
 				outerDisposer._data(outerResult)
 				throw err
+			.spread (innerDisposer, innerResult) ->
+				Promise.resolve(innerResult)
+				.disposer (innerResult) ->
+					Promise.resolve(innerDisposer._data(innerResult))
+					.then ->
+						outerDisposer._data(outerResult)
 
 ###*
 # @summary Get a bluebird.disposer of a node fs like interface for a partition
