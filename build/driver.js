@@ -14,8 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var DETECTOR, KNOWN_FILESYSTEMS, MAGIC_OPTS, Promise, SECTOR_SIZE, createDriverFromFile, detectDriver, detectFS, ext2fs, fatfs, fs, magic, partitioninfo,
-  __hasProp = {}.hasOwnProperty;
+var Promise, SECTOR_SIZE, createDriverFromFile, createExtDriverDisposer, createFatDriverDisposer, ext2fs, fatfs, fs, partitioninfo;
 
 partitioninfo = require('partitioninfo');
 
@@ -27,44 +26,40 @@ fatfs = require('fatfs');
 
 ext2fs = Promise.promisifyAll(require('ext2fs'));
 
-magic = Promise.promisifyAll(require('mmmagic'));
-
 SECTOR_SIZE = 512;
 
-MAGIC_OPTS = magic.MAGIC_NO_CHECK_TAR | magic.MAGIC_NO_CHECK_ENCODING | magic.MAGIC_NO_CHECK_TOKENS | magic.MAGIC_NO_CHECK_CDF | magic.MAGIC_NO_CHECK_TEXT | magic.MAGIC_NO_CHECK_ELF | magic.MAGIC_NO_CHECK_APPTYPE;
-
-DETECTOR = new magic.Magic(MAGIC_OPTS);
-
-KNOWN_FILESYSTEMS = {
-  'node-ext2fs': ['ext2', 'ext3', 'ext4'],
-  'fatfs': ['FAT']
-};
-
-detectDriver = function(mime) {
-  var driver, filesystem, filesystems, _i, _len;
-  for (driver in KNOWN_FILESYSTEMS) {
-    if (!__hasProp.call(KNOWN_FILESYSTEMS, driver)) continue;
-    filesystems = KNOWN_FILESYSTEMS[driver];
-    for (_i = 0, _len = filesystems.length; _i < _len; _i++) {
-      filesystem = filesystems[_i];
-      if (mime.indexOf(filesystem) !== -1) {
-        return driver;
-      }
+createFatDriverDisposer = function(disk, offset, size) {
+  var fat, sectorPosition;
+  sectorPosition = function(sector) {
+    return offset + sector * SECTOR_SIZE;
+  };
+  fat = fatfs.createFileSystem({
+    sectorSize: SECTOR_SIZE,
+    numSectors: size / SECTOR_SIZE,
+    readSectors: function(sector, dest, callback) {
+      return disk.read(dest, 0, dest.length, sectorPosition(sector), callback);
+    },
+    writeSectors: function(sector, data, callback) {
+      return disk.write(data, 0, data.length, sectorPosition(sector), callback);
     }
-  }
+  });
+  return new Promise(function(resolve, reject) {
+    fat.on('error', reject);
+    return fat.on('ready', function() {
+      return resolve(fat);
+    });
+  }).then(function(fat) {
+    return Promise.resolve(Promise.promisifyAll(fat)).disposer(function() {});
+  });
 };
 
-detectFS = function(disk, offset, size) {
-  var buf;
-  disk = Promise.promisifyAll(disk, {
-    multiArgs: true
-  });
-  size = Math.min(size, 2048);
-  buf = Buffer.allocUnsafe(size);
-  return disk.readAsync(buf, 0, size, offset).then(function() {
-    return DETECTOR.detectAsync(buf);
-  }).then(function(mime) {
-    return detectDriver(mime);
+createExtDriverDisposer = function(disk, offset, size) {
+  return ext2fs.mountAsync(disk, {
+    offset: offset
+  }).then(function(fs_) {
+    return Promise.resolve(Promise.promisifyAll(fs_)).disposer(function(fs_) {
+      return ext2fs.umountAsync(fs_);
+    });
   });
 };
 
@@ -86,40 +81,21 @@ detectFS = function(disk, offset, size) {
  * 	      console.log(driver)
  */
 
-createDriverFromFile = function(disk, offset, size) {
-  return detectFS(disk, offset, size).then(function(driver) {
-    var fat, sectorPosition;
-    if (driver === 'fatfs') {
-      sectorPosition = function(sector) {
-        return offset + sector * SECTOR_SIZE;
-      };
-      fat = fatfs.createFileSystem({
-        sectorSize: SECTOR_SIZE,
-        numSectors: size / SECTOR_SIZE,
-        readSectors: function(sector, dest, callback) {
-          return disk.read(dest, 0, dest.length, sectorPosition(sector), callback);
-        },
-        writeSectors: function(sector, data, callback) {
-          return disk.write(data, 0, data.length, sectorPosition(sector), callback);
-        }
-      });
-      return Promise.fromNode(function(callback) {
-        fat.on('error', callback);
-        return fat.on('ready', function() {
-          return callback(null, Promise.promisifyAll(fat));
-        });
-      }).disposer(function() {});
-    } else if (driver === 'node-ext2fs') {
-      return ext2fs.mountAsync(disk, {
-        offset: offset
-      }).then(function(fs_) {
-        return Promise.promisifyAll(fs_);
-      }).disposer(function(fs_) {
-        return ext2fs.umountAsync(fs_);
-      });
+createDriverFromFile = function(disk, offset, size, type) {
+  return Promise["try"](function() {
+    if (type) {
+      if (type === 0x83) {
+        return createExtDriverDisposer(disk, offset, size);
+      } else {
+        return createFatDriverDisposer(disk, offset, size);
+      }
     } else {
-      throw new Error('Unsupported filesystem.');
+      return createFatDriverDisposer(disk, offset, size)["catch"](function() {
+        return createExtDriverDisposer(disk, offset, size);
+      });
     }
+  })["catch"](function() {
+    throw new Error('Unsupported filesystem.');
   });
 };
 
@@ -160,6 +136,6 @@ exports.interact = function(disk, definition) {
       });
     }
   }).then(function(information) {
-    return createDriverFromFile(disk, information.offset, information.size);
+    return createDriverFromFile(disk, information.offset, information.size, information.type);
   });
 };

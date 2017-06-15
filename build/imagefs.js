@@ -45,17 +45,21 @@ checkImageType = function(image) {
 composeDisposers = function(outerDisposer, createInnerDisposer) {
   return Promise.resolve(outerDisposer).then(function(outerDisposer) {
     return outerDisposer._promise.then(function(outerResult) {
-      return Promise.resolve(createInnerDisposer(outerResult)).then(function(innerDisposer) {
-        return innerDisposer._promise.then(function(innerResult) {
-          return Promise.resolve(innerResult).disposer(function(innerResult) {
-            return Promise.resolve(innerDisposer._data(innerResult)).then(function() {
-              return outerDisposer._data(outerResult);
-            });
+      return Promise["try"](function() {
+        return Promise.resolve(createInnerDisposer(outerResult)).then(function(innerDisposer) {
+          return innerDisposer._promise.then(function() {
+            return [innerDisposer, innerDisposer._promise];
           });
         });
       })["catch"](function(err) {
         outerDisposer._data(outerResult);
         throw err;
+      }).spread(function(innerDisposer, innerResult) {
+        return Promise.resolve(innerResult).disposer(function(innerResult) {
+          return Promise.resolve(innerDisposer._data(innerResult)).then(function() {
+            return outerDisposer._data(outerResult);
+          });
+        });
       });
     });
   });
@@ -97,8 +101,8 @@ read = function(disk, partition, path) {
     return Promise.resolve(fs_.createReadStream(path, {
       autoClose: false
     })).disposer(function(stream) {
-      if (stream.fd !== void 0) {
-        return fs_.closeAsync(stream.fd);
+      if (stream.closeAsync) {
+        return stream.closeAsync();
       }
     });
   });
@@ -400,5 +404,5 @@ exports.listDirectory = function(definition) {
  */
 
 exports.close = function() {
-  return ext2fs.close();
+  return _.once(ext2fs.close)();
 };
