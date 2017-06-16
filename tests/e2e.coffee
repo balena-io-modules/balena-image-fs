@@ -12,6 +12,7 @@ files = require('./images/files.json')
 
 RASPBERRYPI = path.join(__dirname, 'images', 'raspberrypi.img')
 EDISON = path.join(__dirname, 'images', 'edison-config.img')
+RAW_EXT2 = path.join(__dirname, 'images', 'ext2.img')
 LOREM = path.join(__dirname, 'images', 'lorem.txt')
 LOREM_CONTENT = fs.readFileSync(LOREM, 'utf8')
 CMDLINE_CONTENT = 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n'
@@ -563,6 +564,30 @@ testBoth(
 		partition:
 			primary: 4
 			logical: 2
+	}
+)
+
+testBoth(
+	'should return a node fs like interface for raw ext partitions'
+	(input) ->
+		Promise.using imagefs.interact(input.image), (fs_) ->
+			fs_.readdirAsync('/')
+			.then (files) ->
+				utils.expect(files, [ 'lost+found', '1' ])
+	{
+		image: RAW_EXT2
+	}
+)
+
+testBoth(
+	'should return a node fs like interface for raw fat partitions'
+	(input) ->
+		Promise.using imagefs.interact(input.image), (fs_) ->
+			fs_.readdirAsync('/')
+			.then (files) ->
+				utils.expect(files, [ 'config.json' ])
+	{
+		image: EDISON
 	}
 )
 
