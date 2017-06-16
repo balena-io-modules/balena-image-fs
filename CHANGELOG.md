@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2017-06-16
+
+### Added
+
+- Support for ext2, ext3 and ext4 filesystems.
+- `imagefs.interact(disk, partition)` returns a disposer of a node fs like interface. Sync methods are not supported.
+
+### Changed
+
+- `imagefs.listDirectory()` lists all files, including those that start with a dot.
+- `imagefs.write`, `imagefs.copy` and `imagefs.replace` now return a `Promise` instead of a `Promise<WriteStream>`.
+- `imagefs.read` now returns a `disposer<ReadStream>` instead of a `Promise<ReadStream>`.
+- All methods now accept `filedisk.Disk` instances as well as image paths.
+
+### Fixed
+
+- Logical partitions are now correctly handled.
+
 ## [2.3.0] - 2016-10-05
 
 ### Added
