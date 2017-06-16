@@ -393,16 +393,3 @@ exports.listDirectory = function(definition) {
     return listDirectory(definition.image, definition.partition, definition.path);
   }
 };
-
-
-/**
- * @summary Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.
- * @function
- * @public
- *
- * @returns {Promise}
- */
-
-exports.close = function() {
-  return _.once(ext2fs.close)();
-};

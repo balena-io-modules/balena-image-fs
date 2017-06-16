@@ -331,13 +331,3 @@ exports.listDirectory = (definition) ->
 			listDirectory(disk, definition.partition, definition.path)
 	else if definition.image instanceof filedisk.Disk
 		listDirectory(definition.image, definition.partition, definition.path)
-
-###*
-# @summary Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.
-# @function
-# @public
-#
-# @returns {Promise}
-###
-exports.close = ->
-	_.once(ext2fs.close)()

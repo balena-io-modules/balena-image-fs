@@ -592,8 +592,6 @@ testBoth(
 )
 
 wary.run()
-.then ->
-	imagefs.close()
 .catch (error) ->
 	console.error(error, error.stack)
 	process.exit(1)
