@@ -39,7 +39,6 @@ Documentation
     * [.copy(input, output)](#module_imagefs.copy) ⇒ <code>Promise</code>
     * [.replace(definition, search, replace)](#module_imagefs.replace) ⇒ <code>Promise</code>
     * [.listDirectory(definition)](#module_imagefs.listDirectory) ⇒ <code>Promise.&lt;Array.&lt;String&gt;&gt;</code>
-    * [.close()](#module_imagefs.close) ⇒ <code>Promise</code>
 
 <a name="module_imagefs.interact"></a>
 
@@ -247,12 +246,6 @@ imagefs.listDirectory
 .then (files) ->
 	console.log(files)
 ```
-<a name="module_imagefs.close"></a>
-
-### imagefs.close() ⇒ <code>Promise</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
-**Summary**: Closes the allocated resources. Call this when you're done using imagefs if you expect the program to end.  
-**Access:** public  
 
 Support
 -------
