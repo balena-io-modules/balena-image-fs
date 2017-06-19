@@ -78,7 +78,7 @@ composeDisposers = function(outerDisposer, createInnerDisposer) {
  *
  * @example
  *
- * Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
+ * Promise.using imagefs.interact('/foo/bar.img', 5), (fs) ->
  *   fs.readFileAsync('/bar/qux')
  *   .then (contents) ->
  *     console.log(contents)
@@ -124,9 +124,7 @@ read = function(disk, partition, path) {
  * @example
  * disposer = imagefs.read
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 4
- * 		logical: 1
+ * 	partition: 5
  * 	path: '/baz/qux'
  *
  * Promise.using disposer, (stream) ->
@@ -174,8 +172,7 @@ write = function(disk, partition, path, stream) {
  * @example
  * imagefs.write
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 2
+ * 	partition: 2
  * 	path: '/baz/qux'
  * , fs.createReadStream('/baz/qux')
  */
@@ -217,9 +214,7 @@ readFile = function(disk, partition, path) {
  * @example
  * imagefs.readFile
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 4
- * 		logical: 1
+ * 	partition: 5
  * 	path: '/baz/qux'
  * .then (contents) ->
  * 	console.log(contents)
@@ -261,8 +256,7 @@ writeFile = function(disk, partition, path, contents) {
  * @example
  * imagefs.writeFile
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 2
+ * 	partition: 2
  * 	path: '/baz/qux'
  * , 'foo bar baz'
  */
@@ -301,14 +295,11 @@ exports.writeFile = function(definition, contents) {
  * @example
  * imagefs.copy
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 2
+ * 	partition: 2
  * 	path: '/baz/qux'
  * ,
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 4
- * 		logical: 1
+ * 	partition: 5
  * 	path: '/baz/hello'
  */
 
@@ -337,8 +328,7 @@ exports.copy = function(input, output) {
  * @example
  * imagefs.replace
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 2
+ * 	partition: 2
  * 	path: '/baz/qux'
  * , 'bar', 'baz'
  */
@@ -373,9 +363,7 @@ listDirectory = function(disk, partition, path) {
  * @example
  * imagefs.listDirectory
  * 	image: '/foo/bar.img'
- * 	partition:
- * 		primary: 4
- * 		logical: 1
+ * 	partition: 5
  * 	path: '/my/directory'
  * .then (files) ->
  * 	console.log(files)
