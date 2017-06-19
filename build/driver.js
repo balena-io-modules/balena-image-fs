@@ -116,7 +116,7 @@ createDriverFromFile = function(disk, offset, size, type) {
  * @example
  * Promise.using filedisk.openFile('foo/bar.img', 'r+'), (fd) ->
  *     disk = new filedisk.FileDisk(fd)
- *     Promise.using driver.interact(disk, primary: 1), (fs) ->
+ *     Promise.using driver.interact(disk, 1), (fs) ->
  * 	      fs.readdirAsync('/')
  *     .then (files) ->
  *         console.log(files)

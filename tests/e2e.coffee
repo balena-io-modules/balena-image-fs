@@ -118,8 +118,7 @@ testBoth(
 			]
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/overlays'
 	}
 )
@@ -132,9 +131,7 @@ testBoth(
 			utils.expect(contents, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 2
+		partition: 6
 		path: '/'
 	}
 )
@@ -148,9 +145,7 @@ testBoth(
 			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/config.json'
 	}
 )
@@ -163,9 +158,7 @@ testBoth(
 			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/config.json'
 	}
 )
@@ -180,15 +173,12 @@ testBoth(
 			utils.expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/config.json'
 	}
 )
@@ -203,15 +193,12 @@ testBoth(
 			utils.expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 2
+		partition: 6
 		path: '/cmdline.txt'
 	}
 )
@@ -226,15 +213,12 @@ testBoth(
 			utils.expect(contents, 'one\n')
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 2
+		partition: 6
 		path: '/1'
 	}
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/1'
 	}
 )
@@ -249,15 +233,12 @@ testBoth(
 			utils.expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/cmdline.txt'
 	}
 )
@@ -273,9 +254,7 @@ testBoth(
 			utils.expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/cmdline.txt'
 	}
 )
@@ -291,9 +270,7 @@ testBoth(
 			utils.expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 2
+		partition: 6
 		path: '/cmdline.txt'
 	}
 )
@@ -308,9 +285,7 @@ testBoth(
 			utils.expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/lorem.txt'
 	}
 )
@@ -331,8 +306,7 @@ testBoth(
 			fs.unlinkAsync(output)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 )
@@ -366,9 +340,7 @@ testBoth(
 	}
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 1
+		partition: 5
 		path: '/edison-config.json'
 	}
 )
@@ -383,8 +355,7 @@ testBoth(
 			utils.expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 	{
@@ -455,8 +426,7 @@ testBoth(
 			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/lorem.txt'
 	}
 )
@@ -473,8 +443,7 @@ testBoth(
 			utils.expect(contents, CMDLINE_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/cmdline.txt'
 	}
 )
@@ -494,8 +463,7 @@ testBoth(
 			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 		path: '/lorem.txt'
 	}
 )
@@ -547,8 +515,7 @@ testBoth(
 				utils.expect(files, RASPBERRY_FIRST_PARTITION_FILES)
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 1
+		partition: 1
 	}
 )
 
@@ -561,9 +528,7 @@ testBoth(
 				utils.expect(files, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
-		partition:
-			primary: 4
-			logical: 2
+		partition: 6
 	}
 )
 

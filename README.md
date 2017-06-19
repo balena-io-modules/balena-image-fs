@@ -55,7 +55,7 @@ Documentation
 
 **Example**  
 ```js
-Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
+Promise.using imagefs.interact('/foo/bar.img', 5), (fs) ->
   fs.readFileAsync('/bar/qux')
   .then (contents) ->
     console.log(contents)
@@ -79,9 +79,7 @@ Promise.using imagefs.interact('/foo/bar.img', primary: 4, logical: 1), (fs) ->
 ```js
 disposer = imagefs.read
 	image: '/foo/bar.img'
-	partition:
-		primary: 4
-		logical: 1
+	partition: 5
 	path: '/baz/qux'
 
 Promise.using disposer, (stream) ->
@@ -108,8 +106,7 @@ Promise.using disposer, (stream) ->
 ```js
 imagefs.write
 	image: '/foo/bar.img'
-	partition:
-		primary: 2
+	partition: 2
 	path: '/baz/qux'
 , fs.createReadStream('/baz/qux')
 ```
@@ -132,9 +129,7 @@ imagefs.write
 ```js
 imagefs.readFile
 	image: '/foo/bar.img'
-	partition:
-		primary: 4
-		logical: 1
+	partition: 5
 	path: '/baz/qux'
 .then (contents) ->
 	console.log(contents)
@@ -158,8 +153,7 @@ imagefs.readFile
 ```js
 imagefs.writeFile
 	image: '/foo/bar.img'
-	partition:
-		primary: 2
+	partition: 2
 	path: '/baz/qux'
 , 'foo bar baz'
 ```
@@ -185,14 +179,11 @@ imagefs.writeFile
 ```js
 imagefs.copy
 	image: '/foo/bar.img'
-	partition:
-		primary: 2
+	partition: 2
 	path: '/baz/qux'
 ,
 	image: '/foo/bar.img'
-	partition:
-		primary: 4
-		logical: 1
+	partition: 5
 	path: '/baz/hello'
 ```
 <a name="module_imagefs.replace"></a>
@@ -215,8 +206,7 @@ imagefs.copy
 ```js
 imagefs.replace
 	image: '/foo/bar.img'
-	partition:
-		primary: 2
+	partition: 2
 	path: '/baz/qux'
 , 'bar', 'baz'
 ```
@@ -239,9 +229,7 @@ imagefs.replace
 ```js
 imagefs.listDirectory
 	image: '/foo/bar.img'
-	partition:
-		primary: 4
-		logical: 1
+	partition: 5
 	path: '/my/directory'
 .then (files) ->
 	console.log(files)
