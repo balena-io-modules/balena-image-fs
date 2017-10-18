@@ -24,6 +24,7 @@ filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 replaceStream = require('replacestream')
 ext2fs = require('ext2fs')
+stream = require('stream')
 
 driver = require('./driver')
 utils = require('./utils')
@@ -86,11 +87,29 @@ read = (disk, partition, path) ->
 	composeDisposers(
 		driver.interact(disk, partition)
 		(fs_) ->
-			Promise.resolve(fs_.createReadStream(path, autoClose: false))
+			readStream = null
+			outputStream = new stream.PassThrough()
+
+			# We don't start the stream until somebody else starts listening
+			startReadStream = ->
+				outputStream.removeListener('newListener', startReadStream)
+
+				# This is triggered _before_ the listener is added, so wait briefly
+				process.nextTick ->
+					readStream = fs_.createReadStream(path, autoClose: false)
+					readStream.on 'error', (err) ->
+						outputStream.emit('error', err)
+					readStream.pipe(outputStream)
+
+			outputStream.on('newListener', startReadStream)
+
+			Promise.resolve(outputStream)
 			.disposer (stream) ->
+				outputStream.end()
+
 				# streams returned by fatfs do not have a close method
-				if stream.closeAsync
-					stream.closeAsync()
+				if readStream? && readStream.closeAsync
+					readStream.closeAsync()
 	)
 
 ###*
