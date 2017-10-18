@@ -18,7 +18,7 @@ limitations under the License.
 /**
  * @module imagefs
  */
-var Promise, checkImageType, composeDisposers, driver, ext2fs, filedisk, fs, listDirectory, read, readFile, replaceStream, utils, write, writeFile, _;
+var Promise, checkImageType, composeDisposers, driver, ext2fs, filedisk, fs, listDirectory, read, readFile, replaceStream, stream, utils, write, writeFile, _;
 
 Promise = require('bluebird');
 
@@ -31,6 +31,8 @@ fs = Promise.promisifyAll(require('fs'));
 replaceStream = require('replacestream');
 
 ext2fs = require('ext2fs');
+
+stream = require('stream');
 
 driver = require('./driver');
 
@@ -98,11 +100,26 @@ exports.interact = function(disk, partition) {
 
 read = function(disk, partition, path) {
   return composeDisposers(driver.interact(disk, partition), function(fs_) {
-    return Promise.resolve(fs_.createReadStream(path, {
-      autoClose: false
-    })).disposer(function(stream) {
-      if (stream.closeAsync) {
-        return stream.closeAsync();
+    var outputStream, readStream, startReadStream;
+    readStream = null;
+    outputStream = new stream.PassThrough();
+    startReadStream = function() {
+      outputStream.removeListener('newListener', startReadStream);
+      return process.nextTick(function() {
+        readStream = fs_.createReadStream(path, {
+          autoClose: false
+        });
+        readStream.on('error', function(err) {
+          return outputStream.emit('error', err);
+        });
+        return readStream.pipe(outputStream);
+      });
+    };
+    outputStream.on('newListener', startReadStream);
+    return Promise.resolve(outputStream).disposer(function(stream) {
+      outputStream.end();
+      if ((readStream != null) && readStream.closeAsync) {
+        return readStream.closeAsync();
       }
     });
   });

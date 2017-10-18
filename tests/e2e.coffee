@@ -164,6 +164,22 @@ testBoth(
 )
 
 testBoth(
+	'should fail cleanly trying to read a missing file on a raspberrypi'
+	(input) ->
+		Promise.using imagefs.read(input), (stream) ->
+			utils.extract(stream)
+		.then (contents) ->
+			throw new Error('Should not successfully return contents for a missing file!')
+		.catch (e) ->
+			utils.expect(e.code, 'NOENT')
+	{
+		image: RASPBERRYPI
+		partition: 5
+		path: '/non-existent-file.txt'
+	}
+)
+
+testBoth(
 	'should copy files between different partitions in a raspberrypi'
 	(input, output) ->
 		imagefs.copy(input, output)
