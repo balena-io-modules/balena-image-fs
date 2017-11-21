@@ -49,7 +49,7 @@
     "fatfs": "^0.10.6",
     "file-disk": "^1.0.1",
     "lodash": "^3.10.0",
-    "partitioninfo": "^2.0.1",
+    "partitioninfo": "^3.0.0",
     "replacestream": "^4.0.0"
   }
 }
