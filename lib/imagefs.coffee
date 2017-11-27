@@ -90,18 +90,21 @@ read = (disk, partition, path) ->
 			readStream = null
 			outputStream = new stream.PassThrough()
 
-			# We don't start the stream until somebody else starts listening
 			startReadStream = ->
-				outputStream.removeListener('newListener', startReadStream)
-
-				# This is triggered _before_ the listener is added, so wait briefly
-				process.nextTick ->
+				try
 					readStream = fs_.createReadStream(path, autoClose: false)
-					readStream.on 'error', (err) ->
-						outputStream.emit('error', err)
-					readStream.pipe(outputStream)
+				catch e
+					outputStream.emit('error', e)
+					return
 
-			outputStream.on('newListener', startReadStream)
+				readStream.on 'error', (err) ->
+					outputStream.emit('error', err)
+
+				readStream.pipe(outputStream)
+
+			# We don't start the stream until somebody else starts listening
+			# Delayed slightly, as this event fires _before_ the listener is added
+			outputStream.once('newListener', -> process.nextTick(startReadStream))
 
 			Promise.resolve(outputStream)
 			.disposer (stream) ->
