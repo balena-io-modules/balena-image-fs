@@ -104,18 +104,24 @@ read = function(disk, partition, path) {
     readStream = null;
     outputStream = new stream.PassThrough();
     startReadStream = function() {
-      outputStream.removeListener('newListener', startReadStream);
-      return process.nextTick(function() {
+      var e;
+      try {
         readStream = fs_.createReadStream(path, {
           autoClose: false
         });
-        readStream.on('error', function(err) {
-          return outputStream.emit('error', err);
-        });
-        return readStream.pipe(outputStream);
+      } catch (_error) {
+        e = _error;
+        outputStream.emit('error', e);
+        return;
+      }
+      readStream.on('error', function(err) {
+        return outputStream.emit('error', err);
       });
+      return readStream.pipe(outputStream);
     };
-    outputStream.on('newListener', startReadStream);
+    outputStream.once('newListener', function() {
+      return process.nextTick(startReadStream);
+    });
     return Promise.resolve(outputStream).disposer(function(stream) {
       outputStream.end();
       if ((readStream != null) && readStream.closeAsync) {
