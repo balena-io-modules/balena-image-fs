@@ -18,6 +18,7 @@ partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
 fs = Promise.promisifyAll(require('fs'))
 fatfs = require('fatfs')
+_ = require('lodash')
 ext2fs = Promise.promisifyAll(require('ext2fs'))
 
 SECTOR_SIZE = 512
@@ -84,10 +85,10 @@ createDriverFromFile = (disk, offset, size, type) ->
 # @function
 #
 # @description
-# If no partition definition is passed, an hddimg partition file is assumed.
+# If no partition number is passed, a raw partition file is assumed.
 #
 # @param {filedisk.Disk} disk - filedisk.Disk instance
-# @param {Object} [definition] - partition definition
+# @param {Number} [partition] - partition number
 #
 # @returns {disposer<Object>} filesystem object
 #
@@ -99,15 +100,15 @@ createDriverFromFile = (disk, offset, size, type) ->
 #     .then (files) ->
 #         console.log(files)
 ###
-exports.interact = (disk, definition) ->
+exports.interact = (disk, partition) ->
 	disk = Promise.promisifyAll(disk)
 	Promise.try ->
-		if definition
-			partitioninfo.get(disk, definition)
+		if _.isUndefined(partition)
+			# Handle raw partition files
+			Promise.props
+				offset: 0
+				size: disk.getCapacityAsync()
 		else
-			# Handle partition files (*.hddimg)
-			disk.getCapacityAsync()
-			.then (size) ->
-				{ offset: 0, size: size }
-	.then (information) ->
-		createDriverFromFile(disk, information.offset, information.size, information.type)
+			partitioninfo.get(disk, partition)
+	.then ({ offset, size, type }) ->
+		createDriverFromFile(disk, offset, size, type)

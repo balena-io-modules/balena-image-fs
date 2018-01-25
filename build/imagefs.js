@@ -74,7 +74,7 @@ composeDisposers = function(outerDisposer, createInnerDisposer) {
  * @public
  *
  * @param {String|filedisk.Disk} disk - path to the image or filedisk.Disk instance
- * @param {Object} partition - partition definition
+ * @param {Number} partition - partition number
  *
  * @returns {bluebird.disposer<fs>} node fs like interface
  *
@@ -139,7 +139,7 @@ read = function(disk, partition, path) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - file path
  *
  * @returns {bluebird.disposer<ReadStream>} file stream
@@ -186,7 +186,7 @@ write = function(disk, partition, path, stream) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - file path
  *
  * @param {ReadStream} stream - contents stream
@@ -229,7 +229,7 @@ readFile = function(disk, partition, path) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - file path
  *
  * @returns {Promise<String>} file text
@@ -270,7 +270,7 @@ writeFile = function(disk, partition, path, contents) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - file path
  *
  * @param {String} contents - contents string
@@ -305,12 +305,12 @@ exports.writeFile = function(definition, contents) {
  *
  * @param {Object} input - input device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [input.partition] - partition definition
+ * @param {Number} [input.partition] - partition number
  * @param {String} input.path - file path
  *
  * @param {Object} output - output device path definition
  * @param {String} output.image - path to the image
- * @param {Object} [output.partition] - partition definition
+ * @param {Number} [output.partition] - partition number
  * @param {String} output.path - file path
  *
  * @returns {Promise}
@@ -340,7 +340,7 @@ exports.copy = function(input, output) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - file path
  *
  * @param {(String|RegExp)} search - search term
@@ -378,7 +378,7 @@ listDirectory = function(disk, partition, path) {
  *
  * @param {Object} definition - device path definition
  * @param {String|filedisk.Disk} definition.image - path to the image or filedisk.Disk instance
- * @param {Object} [definition.partition] - partition definition
+ * @param {Number} [definition.partition] - partition number
  * @param {String} definition.path - directory path
  *
  * @returns {Promise<String[]>} list of files in directory
