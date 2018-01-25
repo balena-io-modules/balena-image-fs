@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
  */
-var Promise, SECTOR_SIZE, createDriverFromFile, createExtDriverDisposer, createFatDriverDisposer, ext2fs, fatfs, fs, partitioninfo;
+var Promise, SECTOR_SIZE, createDriverFromFile, createExtDriverDisposer, createFatDriverDisposer, ext2fs, fatfs, fs, partitioninfo, _;
 
 partitioninfo = require('partitioninfo');
 
@@ -23,6 +23,8 @@ Promise = require('bluebird');
 fs = Promise.promisifyAll(require('fs'));
 
 fatfs = require('fatfs');
+
+_ = require('lodash');
 
 ext2fs = Promise.promisifyAll(require('ext2fs'));
 
@@ -106,10 +108,10 @@ createDriverFromFile = function(disk, offset, size, type) {
  * @function
  *
  * @description
- * If no partition definition is passed, an hddimg partition file is assumed.
+ * If no partition number is passed, a raw partition file is assumed.
  *
  * @param {filedisk.Disk} disk - filedisk.Disk instance
- * @param {Object} [definition] - partition definition
+ * @param {Number} [partition] - partition number
  *
  * @returns {disposer<Object>} filesystem object
  *
@@ -122,20 +124,20 @@ createDriverFromFile = function(disk, offset, size, type) {
  *         console.log(files)
  */
 
-exports.interact = function(disk, definition) {
+exports.interact = function(disk, partition) {
   disk = Promise.promisifyAll(disk);
   return Promise["try"](function() {
-    if (definition) {
-      return partitioninfo.get(disk, definition);
-    } else {
-      return disk.getCapacityAsync().then(function(size) {
-        return {
-          offset: 0,
-          size: size
-        };
+    if (_.isUndefined(partition)) {
+      return Promise.props({
+        offset: 0,
+        size: disk.getCapacityAsync()
       });
+    } else {
+      return partitioninfo.get(disk, partition);
     }
-  }).then(function(information) {
-    return createDriverFromFile(disk, information.offset, information.size, information.type);
+  }).then(function(_arg) {
+    var offset, size, type;
+    offset = _arg.offset, size = _arg.size, type = _arg.type;
+    return createDriverFromFile(disk, offset, size, type);
   });
 };

@@ -124,6 +124,22 @@ testBoth(
 )
 
 testBoth(
+	'should throw an error when the partition number is 0'
+	(input) ->
+		imagefs.listDirectory(input)
+		.then ->
+			# this should not work
+			utils.expect(false, true)
+		.catch (e) ->
+			utils.expect(e.message, 'The partition number must be at least 1.')
+	{
+		image: RASPBERRYPI
+		partition: 0
+		path: '/'
+	}
+)
+
+testBoth(
 	'should list files from an ext4 partition in a raspberrypi image'
 	(input) ->
 		imagefs.listDirectory(input)

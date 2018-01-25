@@ -51,7 +51,7 @@ Documentation
 | Param | Type | Description |
 | --- | --- | --- |
 | disk | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| partition | <code>Object</code> | partition definition |
+| partition | <code>Number</code> | partition number |
 
 **Example**  
 ```js
@@ -72,7 +72,7 @@ Promise.using imagefs.interact('/foo/bar.img', 5), (fs) ->
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 
 **Example**  
@@ -98,7 +98,7 @@ Promise.using disposer, (stream) ->
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 | stream | <code>ReadStream</code> | contents stream |
 
@@ -122,7 +122,7 @@ imagefs.write
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 
 **Example**  
@@ -145,7 +145,7 @@ imagefs.readFile
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 | contents | <code>String</code> | contents string |
 
@@ -168,11 +168,11 @@ imagefs.writeFile
 | --- | --- | --- |
 | input | <code>Object</code> | input device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [input.partition] | <code>Object</code> | partition definition |
+| [input.partition] | <code>Number</code> | partition number |
 | input.path | <code>String</code> | file path |
 | output | <code>Object</code> | output device path definition |
 | output.image | <code>String</code> | path to the image |
-| [output.partition] | <code>Object</code> | partition definition |
+| [output.partition] | <code>Number</code> | partition number |
 | output.path | <code>String</code> | file path |
 
 **Example**  
@@ -197,7 +197,7 @@ imagefs.copy
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 | search | <code>String</code> &#124; <code>RegExp</code> | search term |
 | replace | <code>String</code> | replace value |
@@ -222,7 +222,7 @@ imagefs.replace
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
 | definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
-| [definition.partition] | <code>Object</code> | partition definition |
+| [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | directory path |
 
 **Example**  
