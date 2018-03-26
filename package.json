@@ -48,7 +48,7 @@
     "ext2fs": "^0.1.0",
     "fatfs": "^0.10.6",
     "file-disk": "^1.0.1",
-    "lodash": "^3.10.0",
+    "lodash": "^4.17.5",
     "partitioninfo": "^3.0.0",
     "replacestream": "^4.0.0"
   }
