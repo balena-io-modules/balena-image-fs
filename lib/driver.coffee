@@ -16,7 +16,6 @@ limitations under the License.
 
 partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
-fs = Promise.promisifyAll(require('fs'))
 fatfs = require('fatfs')
 _ = require('lodash')
 ext2fs = Promise.promisifyAll(require('ext2fs'))

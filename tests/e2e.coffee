@@ -4,7 +4,6 @@ filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 path = require('path')
 wary = require('wary')
-ext2fs = Promise.promisifyAll(require('ext2fs'))
 
 imagefs = require('../lib/imagefs')
 utils = require('../lib/utils')

@@ -21,9 +21,7 @@ limitations under the License.
 Promise = require('bluebird')
 _ = require('lodash')
 filedisk = require('file-disk')
-fs = Promise.promisifyAll(require('fs'))
 replaceStream = require('replacestream')
-ext2fs = require('ext2fs')
 stream = require('stream')
 
 driver = require('./driver')

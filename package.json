@@ -19,10 +19,19 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "gulp test && coffee tests/e2e.coffee",
-    "prepublish": "gulp build",
-    "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md"
+    "lint": "resin-lint lib tests",
+    "clean": "rm -rf build",
+    "build": "npm run clean && coffee --bare -o build lib",
+    "test": "npm run lint && coffee tests/e2e.coffee",
+    "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md",
+    "prepublish": "npm run test && npm run build && npm run readme"
   },
+  "files": [
+    "build/*.js",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ],
   "author": "Juan Cruz Viotti <juan@resin.io>",
   "contributors": [
     "Alexis Svinartchouk <alexis@resin.io>",
@@ -31,16 +40,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "chalk": "^1.1.0",
-    "coffee-script": "~1.8.0",
-    "fs-extra": "^0.22.1",
-    "gulp": "~3.8.10",
-    "gulp-coffee": "~2.2.0",
-    "gulp-coffeelint": "~0.4.0",
-    "gulp-mocha": "~2.0.0",
-    "gulp-util": "~3.0.1",
+    "coffee-script": "^1.12.7",
     "jsdoc-to-markdown": "^1.1.1",
-    "mocha": "~2.0.1",
-    "mochainon": "^1.0.0",
+    "resin-lint": "^1.5.0",
     "wary": "^1.0.0"
   },
   "dependencies": {
