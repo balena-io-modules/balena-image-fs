@@ -47,11 +47,11 @@
   },
   "dependencies": {
     "bluebird": "^3.5.1",
-    "ext2fs": "^0.1.0",
+    "ext2fs": "^1.0.3",
     "fatfs": "^0.10.6",
-    "file-disk": "^1.0.1",
+    "file-disk": "^4.1.1",
     "lodash": "^4.17.5",
-    "partitioninfo": "^3.0.0",
+    "partitioninfo": "^4.0.0",
     "replacestream": "^4.0.0"
   }
 }

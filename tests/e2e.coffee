@@ -590,4 +590,4 @@ testBoth(
 wary.run()
 .catch (error) ->
 	console.error(error, error.stack)
-	process.exit(1)
+	process.exitCode = 1
