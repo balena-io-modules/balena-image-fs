@@ -4,7 +4,6 @@ filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 path = require('path')
 wary = require('wary')
-ext2fs = Promise.promisifyAll(require('ext2fs'))
 
 imagefs = require('../lib/imagefs')
 utils = require('../lib/utils')
@@ -59,7 +58,7 @@ objectToArray = (obj) ->
 		obj[key]
 
 testFilename = (title, fn, images...) ->
-	filenames = _.pluck(images, 'image')
+	filenames = _.map(images, 'image')
 	wary.it title, filenames, (tmpFilenames) ->
 		tmpFilenames = objectToArray(tmpFilenames)
 		images = images.map (image, idx) ->
@@ -68,7 +67,7 @@ testFilename = (title, fn, images...) ->
 		fn(images...)
 
 testFileDisk = (title, fn, images...) ->
-	filenames = _.pluck(images, 'image')
+	filenames = _.map(images, 'image')
 	wary.it "#{title} (filedisk)", filenames, (tmpFilenames) ->
 		tmpFilenames = objectToArray(tmpFilenames)
 		fds = tmpFilenames.map (filename) ->
@@ -591,4 +590,4 @@ testBoth(
 wary.run()
 .catch (error) ->
 	console.error(error, error.stack)
-	process.exit(1)
+	process.exitCode = 1

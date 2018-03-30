@@ -16,7 +16,6 @@ limitations under the License.
 
 partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
-fs = Promise.promisifyAll(require('fs'))
 fatfs = require('fatfs')
 _ = require('lodash')
 ext2fs = Promise.promisifyAll(require('ext2fs'))
@@ -29,9 +28,15 @@ createFatDriverDisposer = (disk, offset, size) ->
 		sectorSize: SECTOR_SIZE
 		numSectors: size / SECTOR_SIZE
 		readSectors: (sector, dest, callback) ->
-			disk.read(dest, 0, dest.length, sectorPosition(sector), callback)
+			disk.read(dest, 0, dest.length, sectorPosition(sector))
+			.then ({ bytesRead, buffer }) ->
+				callback(null, bytesRead, buffer)
+			.catch(callback)
 		writeSectors: (sector, data, callback) ->
 			disk.write(data, 0, data.length, sectorPosition(sector), callback)
+			.then ({ bytesWritten, buffer }) ->
+				callback(null, bytesWritten, buffer)
+			.catch(callback)
 	return new Promise (resolve, reject) ->
 		fat.on('error', reject)
 		fat.on 'ready', ->
@@ -107,7 +112,7 @@ exports.interact = (disk, partition) ->
 			# Handle raw partition files
 			Promise.props
 				offset: 0
-				size: disk.getCapacityAsync()
+				size: disk.getCapacity()
 		else
 			partitioninfo.get(disk, partition)
 	.then ({ offset, size, type }) ->

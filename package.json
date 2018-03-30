@@ -1,6 +1,6 @@
 {
   "name": "resin-image-fs",
-  "version": "4.1.2",
+  "version": "5.0.0",
   "description": "Resin.io image filesystem manipulation utilities",
   "main": "build/imagefs.js",
   "homepage": "https://github.com/resin-io/resin-image-fs",
@@ -19,10 +19,19 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "gulp test && coffee tests/e2e.coffee",
-    "prepublish": "gulp build",
-    "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md"
+    "lint": "resin-lint lib tests",
+    "clean": "rm -rf build",
+    "build": "npm run clean && coffee --bare -o build lib",
+    "test": "npm run lint && coffee tests/e2e.coffee",
+    "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md",
+    "prepublish": "npm run test && npm run build && npm run readme"
   },
+  "files": [
+    "build/*.js",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ],
   "author": "Juan Cruz Viotti <juan@resin.io>",
   "contributors": [
     "Alexis Svinartchouk <alexis@resin.io>",
@@ -31,25 +40,18 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "chalk": "^1.1.0",
-    "coffee-script": "~1.8.0",
-    "fs-extra": "^0.22.1",
-    "gulp": "~3.8.10",
-    "gulp-coffee": "~2.2.0",
-    "gulp-coffeelint": "~0.4.0",
-    "gulp-mocha": "~2.0.0",
-    "gulp-util": "~3.0.1",
+    "coffee-script": "^1.12.7",
     "jsdoc-to-markdown": "^1.1.1",
-    "mocha": "~2.0.1",
-    "mochainon": "^1.0.0",
+    "resin-lint": "^1.5.0",
     "wary": "^1.0.0"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
-    "ext2fs": "^0.1.0",
+    "ext2fs": "^1.0.3",
     "fatfs": "^0.10.6",
-    "file-disk": "^1.0.1",
-    "lodash": "^3.10.0",
-    "partitioninfo": "^3.0.0",
+    "file-disk": "^4.1.1",
+    "lodash": "^4.17.5",
+    "partitioninfo": "^4.0.0",
     "replacestream": "^4.0.0"
   }
 }

@@ -1,5 +1,5 @@
 coffee_script:
-  config_file: coffeelint.json
+  enabled: false
 
 java_script:
   enabled: false
