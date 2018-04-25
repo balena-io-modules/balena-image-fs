@@ -14,6 +14,7 @@ EDISON = path.join(__dirname, 'images', 'edison-config.img')
 RAW_EXT2 = path.join(__dirname, 'images', 'ext2.img')
 LOREM = path.join(__dirname, 'images', 'lorem.txt')
 LOREM_CONTENT = fs.readFileSync(LOREM, 'utf8')
+GPT = path.join(__dirname, 'images', 'gpt.img')
 CMDLINE_CONTENT = 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n'
 RASPBERRY_FIRST_PARTITION_FILES = [
 	'.Trashes',
@@ -584,6 +585,32 @@ testBoth(
 				utils.expect(files, [ 'config.json' ])
 	{
 		image: EDISON
+	}
+)
+
+testBoth(
+	'should return a node fs like interface for fat partitions held in gpt typed images'
+	(input) ->
+		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
+			fs_.readdirAsync('/')
+			.then (files) ->
+				utils.expect(files, [ 'fat.file' ])
+	{
+		image: GPT
+		partition: 1
+	}
+)
+
+testBoth(
+	'should return a node fs like interface for ext partitions held in gpt typed images'
+	(input) ->
+		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
+			fs_.readdirAsync('/')
+			.then (files) ->
+				utils.expect(files, [ 'lost+found', 'ext4.file' ])
+	{
+		image: GPT
+		partition: 2
 	}
 )
 

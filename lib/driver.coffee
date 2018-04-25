@@ -71,18 +71,11 @@ createExtDriverDisposer = (disk, offset, size) ->
 # 	      console.log(driver)
 ###
 createDriverFromFile = (disk, offset, size, type) ->
-	Promise.try ->
-		if type
-			if type == 0x83
-				createExtDriverDisposer(disk, offset, size)
-			else
-				createFatDriverDisposer(disk, offset, size)
-		else
-			createFatDriverDisposer(disk, offset, size)
-			.catch ->
-				createExtDriverDisposer(disk, offset, size)
+	createExtDriverDisposer(disk, offset, size)
 	.catch ->
-		throw new Error('Unsupported filesystem.')
+		createFatDriverDisposer(disk, offset, size)
+		.catch ->
+			throw new Error('Unsupported filesystem.')
 
 ###*
 # @summary Get a bluebird disposer of an fs instance pointing to a FAT or ext{2,3,4} partition
