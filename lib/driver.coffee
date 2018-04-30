@@ -16,13 +16,13 @@ limitations under the License.
 
 partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
-fatfs = require('fatfs')
 _ = require('lodash')
 ext2fs = Promise.promisifyAll(require('ext2fs'))
 
 SECTOR_SIZE = 512
 
 createFatDriverDisposer = (disk, offset, size) ->
+	fatfs = require('fatfs')
 	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
 	fat = fatfs.createFileSystem
 		sectorSize: SECTOR_SIZE
