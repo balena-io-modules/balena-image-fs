@@ -4,6 +4,9 @@ filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
 path = require('path')
 wary = require('wary')
+assert = require('assert')
+util = require('util')
+chalk = require('chalk')
 
 imagefs = require('../lib/imagefs')
 utils = require('../lib/utils')
@@ -53,6 +56,9 @@ RASPBERRY_FIRST_PARTITION_FILES = [
 	'image-version-info'
 ]
 
+expect = (input, output) ->
+	assert.deepEqual(input, output, chalk.red("Expected #{util.inspect(input)} to equal #{util.inspect(output)}"))
+
 objectToArray = (obj) ->
 	# Converts {'0': 'zero', '1': 'one'} to ['zero', 'one']
 	Object.keys(obj).map(Number).sort().map (key) ->
@@ -90,7 +96,7 @@ testBoth(
 	(input) ->
 		imagefs.listDirectory(input)
 		.then (contents) ->
-			utils.expect contents, [
+			expect contents, [
 				'._ds1307-rtc-overlay.dtb',
 				'._hifiberry-amp-overlay.dtb',
 				'._hifiberry-dac-overlay.dtb',
@@ -129,9 +135,9 @@ testBoth(
 		imagefs.listDirectory(input)
 		.then ->
 			# this should not work
-			utils.expect(false, true)
+			expect(false, true)
 		.catch (e) ->
-			utils.expect(e.message, 'The partition number must be at least 1.')
+			expect(e.message, 'The partition number must be at least 1.')
 	{
 		image: RASPBERRYPI
 		partition: 0
@@ -144,7 +150,7 @@ testBoth(
 	(input) ->
 		imagefs.listDirectory(input)
 		.then (contents) ->
-			utils.expect(contents, [ 'lost+found', '1' ])
+			expect(contents, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition: 6
@@ -158,7 +164,7 @@ testBoth(
 		Promise.using imagefs.read(input), (stream) ->
 			utils.extract(stream)
 		.then (contents) ->
-			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
+			expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
 		partition: 5
@@ -171,7 +177,7 @@ testBoth(
 	(input) ->
 		imagefs.readFile(input)
 		.then (contents) ->
-			utils.expect(JSON.parse(contents), files.raspberrypi['config.json'])
+			expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
 		partition: 5
@@ -187,7 +193,7 @@ testBoth(
 		.then (contents) ->
 			throw new Error('Should not successfully return contents for a missing file!')
 		.catch (e) ->
-			utils.expect(e.code, 'NOENT')
+			expect(e.code, 'NOENT')
 	{
 		image: RASPBERRYPI
 		partition: 5
@@ -202,7 +208,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT)
+			expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -222,7 +228,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT)
+			expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -242,7 +248,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, 'one\n')
+			expect(contents, 'one\n')
 	{
 		image: RASPBERRYPI
 		partition: 6
@@ -262,7 +268,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT)
+			expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -283,7 +289,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT)
+			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 5
@@ -299,7 +305,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT)
+			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 6
@@ -314,7 +320,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT)
+			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 5
@@ -334,7 +340,7 @@ testBoth(
 			fs.createReadStream(output)
 		.then(utils.extract)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT)
+			expect(contents, CMDLINE_CONTENT)
 			fs.unlinkAsync(output)
 	{
 		image: RASPBERRYPI
@@ -351,7 +357,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT)
+			expect(contents, LOREM_CONTENT)
 	{
 		image: EDISON
 		path: '/config.json'
@@ -365,7 +371,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(JSON.parse(contents), files.edison['config.json'])
+			expect(JSON.parse(contents), files.edison['config.json'])
 	{
 		image: EDISON
 		path: '/config.json'
@@ -384,7 +390,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT)
+			expect(contents, CMDLINE_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -404,7 +410,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT)
+			expect(contents, LOREM_CONTENT)
 	{
 		image: EDISON
 		path: '/lorem.txt'
@@ -417,7 +423,7 @@ testBoth(
 		Promise.using imagefs.read(input), (stream) ->
 			utils.extract(stream)
 		.then (contents) ->
-			utils.expect(JSON.parse(contents), files.edison['config.json'])
+			expect(JSON.parse(contents), files.edison['config.json'])
 	{
 		image: EDISON
 		path: '/config.json'
@@ -435,7 +441,7 @@ testBoth(
 		.then ->
 			fs.readFileAsync(output, 'utf8')
 		.then (contents) ->
-			utils.expect(JSON.parse(contents), files.edison['config.json'])
+			expect(JSON.parse(contents), files.edison['config.json'])
 			fs.unlinkAsync(output)
 	{
 		image: EDISON
@@ -455,7 +461,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
+			expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -472,7 +478,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(cmdline)
 		.then (contents) ->
-			utils.expect(contents, CMDLINE_CONTENT.replace(search, replacement))
+			expect(contents, CMDLINE_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -492,7 +498,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
+			expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -512,7 +518,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
+			expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: EDISON
 		path: '/lorem.txt'
@@ -531,7 +537,7 @@ testBoth(
 		.then ->
 			imagefs.readFile(output)
 		.then (contents) ->
-			utils.expect(contents, LOREM_CONTENT.replace(search, replacement))
+			expect(contents, LOREM_CONTENT.replace(search, replacement))
 	{
 		image: EDISON
 		path: '/lorem.txt'
@@ -544,7 +550,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, RASPBERRY_FIRST_PARTITION_FILES)
+				expect(files, RASPBERRY_FIRST_PARTITION_FILES)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -557,7 +563,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'lost+found', '1' ])
+				expect(files, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition: 6
@@ -570,7 +576,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'lost+found', '1' ])
+				expect(files, [ 'lost+found', '1' ])
 	{
 		image: RAW_EXT2
 	}
@@ -582,7 +588,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'config.json' ])
+				expect(files, [ 'config.json' ])
 	{
 		image: EDISON
 	}
@@ -594,7 +600,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'fat.file' ])
+				expect(files, [ 'fat.file' ])
 	{
 		image: GPT
 		partition: 1
@@ -607,7 +613,7 @@ testBoth(
 		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
 			fs_.readdirAsync('/')
 			.then (files) ->
-				utils.expect(files, [ 'lost+found', 'ext4.file' ])
+				expect(files, [ 'lost+found', 'ext4.file' ])
 	{
 		image: GPT
 		partition: 2
