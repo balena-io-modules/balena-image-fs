@@ -1,6 +1,6 @@
 {
   "name": "resin-image-fs",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "description": "Resin.io image filesystem manipulation utilities",
   "main": "build/imagefs.js",
   "homepage": "https://github.com/resin-io/resin-image-fs",
