@@ -41,7 +41,7 @@
   "devDependencies": {
     "chalk": "^1.1.0",
     "coffee-script": "^1.12.7",
-    "jsdoc-to-markdown": "^1.1.1",
+    "jsdoc-to-markdown": "^4.0.1",
     "resin-lint": "^1.5.0",
     "wary": "^1.0.0"
   },
