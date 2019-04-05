@@ -43,14 +43,14 @@ Documentation
 <a name="module_imagefs.interact"></a>
 
 ### imagefs.interact(disk, partition) ⇒ <code>bluebird.disposer.&lt;fs&gt;</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Get a bluebird.disposer of a node fs like interface for a partition  
 **Returns**: <code>bluebird.disposer.&lt;fs&gt;</code> - node fs like interface  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| disk | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| disk | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | partition | <code>Number</code> | partition number |
 
 **Example**  
@@ -63,15 +63,15 @@ Promise.using imagefs.interact('/foo/bar.img', 5), (fs) ->
 <a name="module_imagefs.read"></a>
 
 ### imagefs.read(definition) ⇒ <code>bluebird.disposer.&lt;ReadStream&gt;</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Get a device file readable stream  
 **Returns**: <code>bluebird.disposer.&lt;ReadStream&gt;</code> - file stream  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 
@@ -90,14 +90,14 @@ Promise.using disposer, (stream) ->
 <a name="module_imagefs.write"></a>
 
 ### imagefs.write(definition, stream) ⇒ <code>Promise</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Write a stream to a device file  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 | stream | <code>ReadStream</code> | contents stream |
@@ -113,15 +113,15 @@ imagefs.write
 <a name="module_imagefs.readFile"></a>
 
 ### imagefs.readFile(definition) ⇒ <code>Promise.&lt;String&gt;</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Read a device file  
 **Returns**: <code>Promise.&lt;String&gt;</code> - file text  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 
@@ -137,14 +137,14 @@ imagefs.readFile
 <a name="module_imagefs.writeFile"></a>
 
 ### imagefs.writeFile(definition, contents) ⇒ <code>Promise</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Write a device file  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
 | contents | <code>String</code> | contents string |
@@ -160,14 +160,14 @@ imagefs.writeFile
 <a name="module_imagefs.copy"></a>
 
 ### imagefs.copy(input, output) ⇒ <code>Promise</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Copy a device file  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | input | <code>Object</code> | input device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [input.partition] | <code>Number</code> | partition number |
 | input.path | <code>String</code> | file path |
 | output | <code>Object</code> | output device path definition |
@@ -189,17 +189,17 @@ imagefs.copy
 <a name="module_imagefs.replace"></a>
 
 ### imagefs.replace(definition, search, replace) ⇒ <code>Promise</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: Perform search and replacement in a file  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | file path |
-| search | <code>String</code> &#124; <code>RegExp</code> | search term |
+| search | <code>String</code> \| <code>RegExp</code> | search term |
 | replace | <code>String</code> | replace value |
 
 **Example**  
@@ -213,15 +213,15 @@ imagefs.replace
 <a name="module_imagefs.listDirectory"></a>
 
 ### imagefs.listDirectory(definition) ⇒ <code>Promise.&lt;Array.&lt;String&gt;&gt;</code>
-**Kind**: static method of <code>[imagefs](#module_imagefs)</code>  
+**Kind**: static method of [<code>imagefs</code>](#module_imagefs)  
 **Summary**: List the contents of a directory  
 **Returns**: <code>Promise.&lt;Array.&lt;String&gt;&gt;</code> - list of files in directory  
-**Access:** public  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | definition | <code>Object</code> | device path definition |
-| definition.image | <code>String</code> &#124; <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
+| definition.image | <code>String</code> \| <code>filedisk.Disk</code> | path to the image or filedisk.Disk instance |
 | [definition.partition] | <code>Number</code> | partition number |
 | definition.path | <code>String</code> | directory path |
 
