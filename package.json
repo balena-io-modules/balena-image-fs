@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.1",
-    "ext2fs": "^1.0.23",
+    "ext2fs": "^1.0.28",
     "fatfs": "^0.10.6",
     "file-disk": "^6.0.0",
     "lodash": "^4.17.5",
