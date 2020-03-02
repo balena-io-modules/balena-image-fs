@@ -39,10 +39,10 @@
   ],
   "license": "Apache-2.0",
   "devDependencies": {
-    "chalk": "^1.1.0",
+    "chalk": "^3.0.0",
     "coffee-script": "^1.12.7",
-    "jsdoc-to-markdown": "^4.0.1",
-    "resin-lint": "^1.5.0",
+    "jsdoc-to-markdown": "^5.0.3",
+    "resin-lint": "^3.3.1",
     "wary": "^1.0.0"
   },
   "dependencies": {
