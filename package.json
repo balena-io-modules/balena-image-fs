@@ -49,9 +49,9 @@
     "bluebird": "^3.5.1",
     "ext2fs": "^1.0.28",
     "fatfs": "^0.10.6",
-    "file-disk": "^6.0.0",
+    "file-disk": "^7.0.1",
     "lodash": "^4.17.5",
-    "partitioninfo": "^5.2.0",
+    "partitioninfo": "^6.0.0",
     "replacestream": "^4.0.0"
   }
 }
