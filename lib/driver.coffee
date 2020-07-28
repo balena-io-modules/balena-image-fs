@@ -16,7 +16,6 @@ limitations under the License.
 
 partitioninfo = require('partitioninfo')
 Promise = require('bluebird')
-_ = require('lodash')
 ext2fs = Promise.promisifyAll(require('ext2fs'))
 
 SECTOR_SIZE = 512
@@ -101,7 +100,7 @@ createDriverFromFile = (disk, offset, size, type) ->
 exports.interact = (disk, partition) ->
 	disk = Promise.promisifyAll(disk)
 	Promise.try ->
-		if _.isUndefined(partition)
+		if partition == undefined
 			# Handle raw partition files
 			Promise.props
 				offset: 0

@@ -19,7 +19,6 @@ limitations under the License.
 ###
 
 Promise = require('bluebird')
-_ = require('lodash')
 filedisk = require('file-disk')
 replaceStream = require('replacestream')
 stream = require('stream')
@@ -28,7 +27,7 @@ driver = require('./driver')
 utils = require('./utils')
 
 checkImageType = (image) ->
-	if not (_.isString(image) or image instanceof filedisk.Disk)
+	if not (typeof image == 'string' or image instanceof filedisk.Disk)
 		throw new Error('image must be a String (file path) or a filedisk.Disk instance')
 
 composeDisposers = (outerDisposer, createInnerDisposer) ->
@@ -71,7 +70,7 @@ composeDisposers = (outerDisposer, createInnerDisposer) ->
 ###
 exports.interact = (disk, partition) ->
 	checkImageType(disk)
-	if _.isString(disk)
+	if typeof disk == 'string'
 		composeDisposers(
 			filedisk.openFile(disk, 'r+')
 			(fd) ->
@@ -138,7 +137,7 @@ read = (disk, partition, path) ->
 ###
 exports.read = (definition) ->
 	checkImageType(definition.image)
-	if _.isString(definition.image)
+	if typeof definition.image == 'string'
 		composeDisposers(
 			filedisk.openFile(definition.image, 'r')
 			(fd) ->
@@ -176,7 +175,7 @@ write = (disk, partition, path, stream) ->
 ###
 exports.write = (definition, stream) ->
 	checkImageType(definition.image)
-	if _.isString(definition.image)
+	if typeof definition.image == 'string'
 		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
 			disk = new filedisk.FileDisk(fd, false, false)
 			write(disk, definition.partition, definition.path, stream)
@@ -209,7 +208,7 @@ readFile = (disk, partition, path) ->
 ###
 exports.readFile = (definition) ->
 	checkImageType(definition.image)
-	if _.isString(definition.image)
+	if typeof definition.image == 'string'
 		Promise.using filedisk.openFile(definition.image, 'r'), (fd) ->
 			disk = new filedisk.FileDisk(fd)
 			readFile(disk, definition.partition, definition.path)
@@ -242,7 +241,7 @@ writeFile = (disk, partition, path, contents) ->
 ###
 exports.writeFile = (definition, contents) ->
 	checkImageType(definition.image)
-	if _.isString(definition.image)
+	if typeof definition.image == 'string'
 		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
 			disk = new filedisk.FileDisk(fd)
 			writeFile(disk, definition.partition, definition.path, contents)
@@ -333,7 +332,7 @@ listDirectory = (disk, partition, path) ->
 ###
 exports.listDirectory = (definition) ->
 	checkImageType(definition.image)
-	if _.isString(definition.image)
+	if typeof definition.image == 'string'
 		Promise.using filedisk.openFile(definition.image, 'r+'), (fd) ->
 			disk = new filedisk.FileDisk(fd)
 			listDirectory(disk, definition.partition, definition.path)

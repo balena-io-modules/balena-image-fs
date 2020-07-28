@@ -1,4 +1,3 @@
-_ = require('lodash')
 Promise = require('bluebird')
 filedisk = require('file-disk')
 fs = Promise.promisifyAll(require('fs'))
@@ -65,7 +64,7 @@ objectToArray = (obj) ->
 		obj[key]
 
 testFilename = (title, fn, images...) ->
-	filenames = _.map(images, 'image')
+	filenames = images.map(i -> i.image)
 	wary.it title, filenames, (tmpFilenames) ->
 		tmpFilenames = objectToArray(tmpFilenames)
 		images = images.map (image, idx) ->
@@ -74,7 +73,7 @@ testFilename = (title, fn, images...) ->
 		fn(images...)
 
 testFileDisk = (title, fn, images...) ->
-	filenames = _.map(images, 'image')
+	filenames = images.map(i -> i.image)
 	wary.it "#{title} (filedisk)", filenames, (tmpFilenames) ->
 		tmpFilenames = objectToArray(tmpFilenames)
 		fds = tmpFilenames.map (filename) ->
