@@ -1,6 +1,6 @@
-Promise = require('bluebird')
+Bluebird = require('bluebird')
 filedisk = require('file-disk')
-fs = Promise.promisifyAll(require('fs'))
+fs = require('fs')
 path = require('path')
 wary = require('wary')
 assert = require('assert')
@@ -8,7 +8,6 @@ util = require('util')
 chalk = require('chalk')
 
 imagefs = require('../lib/imagefs')
-utils = require('../lib/utils')
 files = require('./images/files.json')
 
 RASPBERRYPI = path.join(__dirname, 'images', 'raspberrypi.img')
@@ -17,7 +16,6 @@ RAW_EXT2 = path.join(__dirname, 'images', 'ext2.img')
 LOREM = path.join(__dirname, 'images', 'lorem.txt')
 LOREM_CONTENT = fs.readFileSync(LOREM, 'utf8')
 GPT = path.join(__dirname, 'images', 'gpt.img')
-CMDLINE_CONTENT = 'dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait \n'
 RASPBERRY_FIRST_PARTITION_FILES = [
 	'.Trashes',
 	'._.Trashes',
@@ -55,45 +53,52 @@ RASPBERRY_FIRST_PARTITION_FILES = [
 	'image-version-info'
 ]
 
+waitStream = (stream) ->
+	new Promise (resolve, reject) ->
+		stream.on('error', reject)
+		stream.on('close', resolve)
+
+extract = (stream) ->
+	chunks = []
+	new Promise (resolve, reject) ->
+		stream.on 'error', reject
+		stream.on 'data', (chunk) ->
+			chunks.push(chunk)
+		stream.on 'end', ->
+			resolve(Buffer.concat(chunks))
+
 expect = (input, output) ->
 	assert.deepEqual(input, output, chalk.red("Expected #{util.inspect(input)} to equal #{util.inspect(output)}"))
 
-objectToArray = (obj) ->
-	# Converts {'0': 'zero', '1': 'one'} to ['zero', 'one']
-	Object.keys(obj).map(Number).sort().map (key) ->
-		obj[key]
+testFilename = (title, fn, image) ->
+	wary.it title, { file: image.image }, (tmpFilenames) ->
+		imagefs.interact tmpFilenames.file, image.partition, ($fs) ->
+			fn(Bluebird.promisifyAll($fs))
 
-testFilename = (title, fn, images...) ->
-	filenames = images.map(i -> i.image)
-	wary.it title, filenames, (tmpFilenames) ->
-		tmpFilenames = objectToArray(tmpFilenames)
-		images = images.map (image, idx) ->
-			image.image = tmpFilenames[idx]
-			image
-		fn(images...)
+testFileDisk = (title, fn, image) ->
+	wary.it "#{title} (filedisk)", { file: image.image }, (tmpFilenames) ->
+		filedisk.withOpenFile tmpFilenames.file, 'r+', (handle) ->
+			disk = new filedisk.FileDisk(handle)
+			imagefs.interact disk, image.partition, ($fs) ->
+				fn(Bluebird.promisifyAll($fs))
 
-testFileDisk = (title, fn, images...) ->
-	filenames = images.map(i -> i.image)
-	wary.it "#{title} (filedisk)", filenames, (tmpFilenames) ->
-		tmpFilenames = objectToArray(tmpFilenames)
-		fds = tmpFilenames.map (filename) ->
-			filedisk.openFile(filename, 'r+')
-		Promise.using fds, (fds) ->
-			images = images.map (image, idx) ->
-				image.image = new filedisk.FileDisk(fds[idx])
-				image
-			fn(images...)
-
-testBoth = (title, fn, images...) ->
+testBoth = (title, fn, image) ->
 	Promise.all([
-		testFilename(title, fn, images...)
-		testFileDisk(title, fn, images...)
+		testFilename(title, fn, image)
+		testFileDisk(title, fn, image)
 	])
+
+wary.it 'should throw an error when the partition number is 0', { file: RASPBERRYPI }, (tmpFilenames) ->
+	imagefs.interact tmpFilenames.file, 0, ($fs) ->
+		# this should not work
+		expect(false, true)
+	.catch (e) ->
+		expect(e.message, 'The partition number must be at least 1.')
 
 testBoth(
 	'should list files from a fat partition in a raspberrypi image'
-	(input) ->
-		imagefs.listDirectory(input)
+	($fs) ->
+		$fs.readdirAsync('/overlays')
 		.then (contents) ->
 			expect contents, [
 				'._ds1307-rtc-overlay.dtb',
@@ -124,71 +129,51 @@ testBoth(
 	{
 		image: RASPBERRYPI
 		partition: 1
-		path: '/overlays'
-	}
-)
-
-testBoth(
-	'should throw an error when the partition number is 0'
-	(input) ->
-		imagefs.listDirectory(input)
-		.then ->
-			# this should not work
-			expect(false, true)
-		.catch (e) ->
-			expect(e.message, 'The partition number must be at least 1.')
-	{
-		image: RASPBERRYPI
-		partition: 0
-		path: '/'
 	}
 )
 
 testBoth(
 	'should list files from an ext4 partition in a raspberrypi image'
-	(input) ->
-		imagefs.listDirectory(input)
+	($fs) ->
+		$fs.readdirAsync('/')
 		.then (contents) ->
 			expect(contents, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition: 6
-		path: '/'
 	}
 )
 
 testBoth(
 	'should read a config.json from a raspberrypi'
-	(input) ->
-		Promise.using imagefs.read(input), (stream) ->
-			utils.extract(stream)
+	($fs) ->
+		stream = $fs.createReadStream('/config.json')
+		extract(stream)
 		.then (contents) ->
 			expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
 		partition: 5
-		path: '/config.json'
 	}
 )
 
 testBoth(
 	'should read a config.json from a raspberrypi using readFile'
-	(input) ->
-		imagefs.readFile(input)
+	($fs) ->
+		$fs.readFileAsync('/config.json')
 		.then (contents) ->
 			expect(JSON.parse(contents), files.raspberrypi['config.json'])
 	{
 		image: RASPBERRYPI
 		partition: 5
-		path: '/config.json'
 	}
 )
 
 testBoth(
 	'should fail cleanly trying to read a missing file on a raspberrypi'
-	(input) ->
-		Promise.using imagefs.read(input), (stream) ->
-			utils.extract(stream)
+	($fs) ->
+		stream = $fs.createReadStream('/non-existent-file.txt')
+		extract(stream)
 		.then (contents) ->
 			throw new Error('Should not successfully return contents for a missing file!')
 		.catch (e) ->
@@ -196,360 +181,95 @@ testBoth(
 	{
 		image: RASPBERRYPI
 		partition: 5
-		path: '/non-existent-file.txt'
-	}
-)
-
-testBoth(
-	'should copy files between different partitions in a raspberrypi'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT)
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-	{
-		image: RASPBERRYPI
-		partition: 5
-		path: '/config.json'
-	}
-)
-
-testBoth(
-	'should copy files from fat to ext partitions in a raspberrypi'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT)
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-	{
-		image: RASPBERRYPI
-		partition: 6
-		path: '/cmdline.txt'
-	}
-)
-
-testBoth(
-	'should copy files from ext to fat partitions in a raspberrypi'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, 'one\n')
-	{
-		image: RASPBERRYPI
-		partition: 6
-		path: '/1'
-	}
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/1'
-	}
-)
-
-testBoth(
-	'should replace files between different partitions in a raspberrypi'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT)
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-	{
-		image: RASPBERRYPI
-		partition: 5
-		path: '/cmdline.txt'
 	}
 )
 
 testBoth(
 	'should copy a local file to a raspberry pi fat partition'
-	(output) ->
+	($fs) ->
+		output = '/cmdline.txt'
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
+		outputStream = $fs.createWriteStream(output)
+		inputStream.pipe(outputStream)
+		waitStream(outputStream)
 		.then ->
-			imagefs.readFile(output)
+			$fs.readFileAsync(output, { encoding: 'utf8' })
 		.then (contents) ->
 			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 5
-		path: '/cmdline.txt'
 	}
 )
 
 testBoth(
 	'should copy a local file to a raspberry pi ext partition'
-	(output) ->
+	($fs) ->
+		output = '/cmdline.txt'
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
+		outputStream = $fs.createWriteStream(output)
+		inputStream.pipe(outputStream)
+		waitStream(outputStream)
 		.then ->
-			imagefs.readFile(output)
+			$fs.readFileAsync(output, { encoding: 'utf8' })
 		.then (contents) ->
 			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 6
-		path: '/cmdline.txt'
 	}
 )
 
 testBoth(
 	'should copy text to a raspberry pi partition using writeFile'
-	(output) ->
-		imagefs.writeFile(output, LOREM_CONTENT)
+	($fs) ->
+		output = '/lorem.txt'
+		$fs.writeFileAsync(output, LOREM_CONTENT)
 		.then ->
-			imagefs.readFile(output)
+			$fs.readFileAsync(output, { encoding: 'utf8' })
 		.then (contents) ->
 			expect(contents, LOREM_CONTENT)
 	{
 		image: RASPBERRYPI
 		partition: 5
-		path: '/lorem.txt'
-	}
-)
-
-testBoth(
-	'should copy a file from a raspberry pi partition to a local file'
-	(input) ->
-		output = path.join(__dirname, 'output.tmp')
-		Promise.using imagefs.read(input), (inputStream) ->
-			out = fs.createWriteStream(output)
-			inputStream.pipe(out)
-			utils.waitStream(out)
-		.then ->
-			fs.createReadStream(output)
-		.then(utils.extract)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT)
-			fs.unlinkAsync(output)
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-)
-
-testBoth(
-	'should replace a file in an edison config partition with a local file'
-	(output) ->
-		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, LOREM_CONTENT)
-	{
-		image: EDISON
-		path: '/config.json'
-	}
-)
-
-testBoth(
-	'should copy a file from an edison partition to a raspberry pi'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(JSON.parse(contents), files.edison['config.json'])
-	{
-		image: EDISON
-		path: '/config.json'
-	}
-	{
-		image: RASPBERRYPI
-		partition: 5
-		path: '/edison-config.json'
-	}
-)
-
-testBoth(
-	'should copy a file from a raspberry pi to an edison config partition'
-	(input, output) ->
-		imagefs.copy(input, output)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT)
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-	{
-		image: EDISON
-		path: '/config.json'
 	}
 )
 
 testBoth(
 	'should copy a local file to an edison config partition'
-	(output) ->
+	($fs) ->
+		output = '/lorem.txt'
 		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
+		outputStream = $fs.createWriteStream(output)
+		inputStream.pipe(outputStream)
+		waitStream(outputStream)
 		.then ->
-			imagefs.readFile(output)
+			$fs.readFileAsync(output, { encoding: 'utf8' })
 		.then (contents) ->
 			expect(contents, LOREM_CONTENT)
 	{
 		image: EDISON
-		path: '/lorem.txt'
 	}
 )
 
 testBoth(
 	'should read a config.json from a edison config partition'
-	(input) ->
-		Promise.using imagefs.read(input), (stream) ->
-			utils.extract(stream)
+	($fs) ->
+		stream = $fs.createReadStream('/config.json')
+		extract(stream)
 		.then (contents) ->
 			expect(JSON.parse(contents), files.edison['config.json'])
 	{
 		image: EDISON
-		path: '/config.json'
-	}
-)
-
-testBoth(
-	'should copy a file from a edison config partition to a local file'
-	(input) ->
-		output = path.join(__dirname, 'output.tmp')
-		Promise.using imagefs.read(input), (inputStream) ->
-			out = fs.createWriteStream(output)
-			inputStream.pipe(out)
-			utils.waitStream(out)
-		.then ->
-			fs.readFileAsync(output, 'utf8')
-		.then (contents) ->
-			expect(JSON.parse(contents), files.edison['config.json'])
-			fs.unlinkAsync(output)
-	{
-		image: EDISON
-		path: '/config.json'
-	}
-)
-
-testBoth(
-	'should replace a file in a raspberry pi partition'
-	(output) ->
-		search = 'Lorem'
-		replacement = 'Elementum'
-		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
-		.then ->
-			imagefs.replace(output, search, replacement)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, LOREM_CONTENT.replace(search, replacement))
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/lorem.txt'
-	}
-)
-
-testBoth(
-	'should replace cmdline.txt in a raspberry pi partition'
-	(cmdline) ->
-		search = 'lpm_enable=0'
-		replacement = 'lpm_enable=1'
-		imagefs.replace(cmdline, search, replacement)
-		.then ->
-			imagefs.readFile(cmdline)
-		.then (contents) ->
-			expect(contents, CMDLINE_CONTENT.replace(search, replacement))
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/cmdline.txt'
-	}
-)
-
-testBoth(
-	'should replace a file in a raspberry pi partition with a regex'
-	(output) ->
-		search = /m/g
-		replacement = 'n'
-		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
-		.then ->
-			imagefs.replace(output, search, replacement)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, LOREM_CONTENT.replace(search, replacement))
-	{
-		image: RASPBERRYPI
-		partition: 1
-		path: '/lorem.txt'
-	}
-)
-
-testBoth(
-	'should replace a file in an edison partition'
-	(output) ->
-		search = 'Lorem'
-		replacement = 'Elementum'
-		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
-		.then ->
-			imagefs.replace(output, search, replacement)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, LOREM_CONTENT.replace(search, replacement))
-	{
-		image: EDISON
-		path: '/lorem.txt'
-	}
-)
-
-testBoth(
-	'should replace a file in an edison partition with a regex'
-	(output) ->
-		search = /m/g
-		replacement = 'n'
-		inputStream = fs.createReadStream(LOREM)
-		imagefs.write(output, inputStream)
-		.then ->
-			imagefs.replace(output, search, replacement)
-		.then ->
-			imagefs.readFile(output)
-		.then (contents) ->
-			expect(contents, LOREM_CONTENT.replace(search, replacement))
-	{
-		image: EDISON
-		path: '/lorem.txt'
 	}
 )
 
 testBoth(
 	'should return a node fs like interface for fat partitions'
-	(input) ->
-		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, RASPBERRY_FIRST_PARTITION_FILES)
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, RASPBERRY_FIRST_PARTITION_FILES)
 	{
 		image: RASPBERRYPI
 		partition: 1
@@ -558,11 +278,10 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for ext partitions'
-	(input) ->
-		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, [ 'lost+found', '1' ])
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, [ 'lost+found', '1' ])
 	{
 		image: RASPBERRYPI
 		partition: 6
@@ -571,11 +290,10 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for raw ext partitions'
-	(input) ->
-		Promise.using imagefs.interact(input.image), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, [ 'lost+found', '1' ])
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, [ 'lost+found', '1' ])
 	{
 		image: RAW_EXT2
 	}
@@ -583,11 +301,10 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for raw fat partitions'
-	(input) ->
-		Promise.using imagefs.interact(input.image), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, [ 'config.json' ])
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, [ 'config.json' ])
 	{
 		image: EDISON
 	}
@@ -595,11 +312,10 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for fat partitions held in gpt typed images'
-	(input) ->
-		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, [ 'fat.file' ])
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, [ 'fat.file' ])
 	{
 		image: GPT
 		partition: 1
@@ -608,11 +324,10 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for ext partitions held in gpt typed images'
-	(input) ->
-		Promise.using imagefs.interact(input.image, input.partition), (fs_) ->
-			fs_.readdirAsync('/')
-			.then (files) ->
-				expect(files, [ 'lost+found', 'ext4.file' ])
+	($fs) ->
+		$fs.readdirAsync('/')
+		.then (files) ->
+			expect(files, [ 'lost+found', 'ext4.file' ])
 	{
 		image: GPT
 		partition: 2

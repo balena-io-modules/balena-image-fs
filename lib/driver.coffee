@@ -15,13 +15,18 @@ limitations under the License.
 ###
 
 partitioninfo = require('partitioninfo')
-Promise = require('bluebird')
-ext2fs = Promise.promisifyAll(require('ext2fs'))
+ext2fs = require('ext2fs')
+fatfs = require('fatfs')
+util = require('util')
+
+class MountError extends Error
+	name: 'MountError'
+	constructor: (e) ->
+		super(e.message)
 
 SECTOR_SIZE = 512
 
-createFatDriverDisposer = (disk, offset, size) ->
-	fatfs = require('fatfs')
+createFatDriverDisposer = (disk, offset, size, fn) ->
 	sectorPosition = (sector) -> offset + sector * SECTOR_SIZE
 	fat = fatfs.createFileSystem
 		sectorSize: SECTOR_SIZE
@@ -37,21 +42,24 @@ createFatDriverDisposer = (disk, offset, size) ->
 				callback(null, bytesWritten, buffer)
 			.catch(callback)
 	return new Promise (resolve, reject) ->
-		fat.on('error', reject)
+		fat.on 'error', (e) ->
+			reject(new MountError(e))
 		fat.on 'ready', ->
 			resolve(fat)
 	.then (fat) ->
-		Promise.resolve(Promise.promisifyAll(fat))
-		.disposer ->
-			# fatfs doesn't require you to do anything to "umount" the filesystem.
-			return
+		fn(fat)
 
-createExtDriverDisposer = (disk, offset, size) ->
-	ext2fs.mountAsync(disk, offset: offset)
+mountAsync = util.promisify(ext2fs.mount)
+umountAsync = util.promisify(ext2fs.umount)
+
+createExtDriverDisposer = (disk, offset, size, fn) ->
+	mountAsync(disk, offset: offset)
+	.catch (e) ->
+		throw (new MountError(e))
 	.then (fs_) ->
-		Promise.resolve(Promise.promisifyAll(fs_))
-		.disposer (fs_) ->
-			ext2fs.umountAsync(fs_)
+		fn(fs_)
+		.finally ->
+			umountAsync(fs_)
 
 ###*
 # @summary Get a fatfs / node-ext2fs driver from a file
@@ -69,12 +77,24 @@ createExtDriverDisposer = (disk, offset, size) ->
 #     Promise.using createDriverFromFile(disk), (driver) ->
 # 	      console.log(driver)
 ###
-createDriverFromFile = (disk, offset, size, type) ->
-	createExtDriverDisposer(disk, offset, size)
-	.catch ->
-		createFatDriverDisposer(disk, offset, size)
-		.catch ->
+createDriverFromFile = (disk, offset, size, fn) ->
+	createExtDriverDisposer(disk, offset, size, fn)
+	.catch (e) ->
+		if !(e instanceof MountError)
+			throw e
+		createFatDriverDisposer(disk, offset, size, fn)
+		.catch (e) ->
+			if !(e instanceof MountError)
+				throw e
 			throw new Error('Unsupported filesystem.')
+
+getPartition = (disk, partition) ->
+	if partition == undefined
+		disk.getCapacity()
+		.then (size) ->
+			{ offset: 0, size }
+	else
+		partitioninfo.get(disk, partition)
 
 ###*
 # @summary Get a bluebird disposer of an fs instance pointing to a FAT or ext{2,3,4} partition
@@ -97,15 +117,7 @@ createDriverFromFile = (disk, offset, size, type) ->
 #     .then (files) ->
 #         console.log(files)
 ###
-exports.interact = (disk, partition) ->
-	disk = Promise.promisifyAll(disk)
-	Promise.try ->
-		if partition == undefined
-			# Handle raw partition files
-			Promise.props
-				offset: 0
-				size: disk.getCapacity()
-		else
-			partitioninfo.get(disk, partition)
-	.then ({ offset, size, type }) ->
-		createDriverFromFile(disk, offset, size, type)
+exports.interact = (disk, partition, fn) ->
+	getPartition(disk, partition)
+	.then ({ offset, size }) ->
+		createDriverFromFile(disk, offset, size, fn)

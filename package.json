@@ -39,6 +39,7 @@
   ],
   "license": "Apache-2.0",
   "devDependencies": {
+    "bluebird": "^3.7.2",
     "chalk": "^3.0.0",
     "coffee-script": "^1.12.7",
     "jsdoc-to-markdown": "^5.0.3",
@@ -46,12 +47,9 @@
     "wary": "^1.0.0"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "ext2fs": "^1.0.28",
-    "fatfs": "^0.10.6",
-    "file-disk": "^7.0.1",
-    "lodash": "^4.17.5",
-    "partitioninfo": "^6.0.0",
-    "replacestream": "^4.0.0"
+    "ext2fs": "^2.0.0",
+    "fatfs": "^0.10.7",
+    "file-disk": "^8.0.0",
+    "partitioninfo": "^6.0.1"
   }
 }
