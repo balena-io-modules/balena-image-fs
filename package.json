@@ -2,14 +2,14 @@
   "name": "resin-image-fs",
   "version": "6.0.0",
   "description": "Resin.io image filesystem manipulation utilities",
-  "main": "build/imagefs.js",
-  "homepage": "https://github.com/resin-io/resin-image-fs",
+  "main": "build/index.js",
+  "homepage": "https://github.com/balena-io/resin-image-fs",
   "repository": {
     "type": "git",
-    "url": "git://github.com/resin-io/resin-image-fs.git"
+    "url": "git://github.com/balena-io/resin-image-fs.git"
   },
   "keywords": [
-    "resin",
+    "balena",
     "fs",
     "filesystem",
     "device",
@@ -19,37 +19,45 @@
     "test": "tests"
   },
   "scripts": {
-    "lint": "resin-lint lib tests",
+    "lint": "balena-lint --typescript lib tests",
+    "lint-fix": "balena-lint --fix --typescript lib tests",
     "clean": "rm -rf build",
-    "build": "npm run clean && coffee --bare -o build lib",
-    "test": "npm run lint && coffee tests/e2e.coffee",
-    "readme": "jsdoc2md --template doc/README.hbs build/imagefs.js > README.md",
+    "build": "npm run clean && tsc",
+    "test": "npm run lint && ts-node tests/e2e.ts",
+    "readme": "jsdoc2md --template doc/README.hbs build/index.js > README.md",
     "prepublish": "npm run test && npm run build && npm run readme"
   },
   "files": [
     "build/*.js",
+    "build/*.js.map",
+    "build/*.d.ts",
     "CHANGELOG.md",
     "README.md",
     "LICENSE"
   ],
-  "author": "Juan Cruz Viotti <juan@resin.io>",
+  "author": "Juan Cruz Viotti <juan@balena.io>",
   "contributors": [
-    "Alexis Svinartchouk <alexis@resin.io>",
-    "Juan Cruz Viotti <juan@resin.io>"
+    "Alexis Svinartchouk <alexis@balena.io>",
+    "Juan Cruz Viotti <juan@balena.io>"
   ],
   "license": "Apache-2.0",
   "devDependencies": {
+    "@balena/lint": "^5.1.0",
+    "@resin.io/types-wary": "^1.1.1",
+    "@types/bluebird": "^3.5.32",
+    "@types/node": "^10.17.28",
     "bluebird": "^3.7.2",
-    "chalk": "^3.0.0",
-    "coffee-script": "^1.12.7",
+    "chalk": "^4.1.0",
     "jsdoc-to-markdown": "^5.0.3",
-    "resin-lint": "^3.3.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7",
     "wary": "^1.0.0"
   },
   "dependencies": {
     "ext2fs": "^2.0.0",
     "fatfs": "^0.10.7",
     "file-disk": "^8.0.0",
-    "partitioninfo": "^6.0.1"
+    "partitioninfo": "^6.0.1",
+    "typed-error": "^3.2.0"
   }
 }
