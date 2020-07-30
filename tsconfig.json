@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"target": "es2018",
+		"strict": true,
+		"typeRoots": ["typings", "node_modules/@types"],
+		"outDir": "build",
+		"declaration": true,
+		"sourceMap": true,
+		"module": "commonjs",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"importHelpers": true,
+		"resolveJsonModule": true
+	},
+	"include": ["lib"]
+}
