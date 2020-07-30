@@ -27,6 +27,16 @@
     "readme": "jsdoc2md --template doc/README.hbs build/index.js > README.md",
     "prepublish": "npm run test && npm run build && npm run readme"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "./**/*.ts": [
+      "npm run lint-fix"
+    ]
+  },
   "files": [
     "build/*.js",
     "build/*.js.map",
@@ -48,7 +58,9 @@
     "@types/node": "^10.17.28",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
+    "husky": "^4.2.5",
     "jsdoc-to-markdown": "^5.0.3",
+    "lint-staged": "^10.2.11",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7",
     "wary": "^1.0.0"
