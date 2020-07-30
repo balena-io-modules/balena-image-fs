@@ -23,7 +23,7 @@
     "lint-fix": "balena-lint --fix --typescript lib tests",
     "clean": "rm -rf build",
     "build": "npm run clean && tsc",
-    "test": "npm run lint && ts-node tests/e2e.ts",
+    "test": "npm run lint && mocha -r ts-node/register tests/e2e.ts",
     "readme": "jsdoc2md --template doc/README.hbs build/index.js > README.md",
     "prepublish": "npm run test && npm run build && npm run readme"
   },
@@ -53,17 +53,18 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@balena/lint": "^5.1.0",
-    "@resin.io/types-wary": "^1.1.1",
     "@types/bluebird": "^3.5.32",
+    "@types/mocha": "^8.0.0",
     "@types/node": "^10.17.28",
+    "@types/tmp": "^0.2.0",
     "bluebird": "^3.7.2",
-    "chalk": "^4.1.0",
     "husky": "^4.2.5",
     "jsdoc-to-markdown": "^5.0.3",
     "lint-staged": "^10.2.11",
+    "mocha": "^8.0.1",
+    "tmp": "^0.2.1",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.7",
-    "wary": "^1.0.0"
+    "typescript": "^3.9.7"
   },
   "dependencies": {
     "ext2fs": "^2.0.0",
