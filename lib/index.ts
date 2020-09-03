@@ -130,8 +130,8 @@ async function tryInteract<T>(
 		try {
 			return await runInFat(disk, offset, size, fn);
 		} catch (e2) {
-			if (!(e instanceof MountError)) {
-				throw e;
+			if (!(e2 instanceof MountError)) {
+				throw e2;
 			}
 			throw new Error('Unsupported filesystem.');
 		}
