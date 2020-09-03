@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix wrong error being thrown for fat partition errors
+      hash: 8bdab51758e07429225c0c6615efaa63a2cffee9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 7.0.2
+  date: 2020-09-03T17:01:40.313Z
+- commits:
     - subject: Add .versionbot/CHANGELOG.yml for nested changelogs
       hash: 8852f1bc2f12ccacddd4b5a6b4dad4c0b4fe231d
       body: ''
