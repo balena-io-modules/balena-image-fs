@@ -122,13 +122,13 @@ async function tryInteract<T>(
 	fn: (fs: typeof Fs) => Promise<T>,
 ): Promise<T> {
 	try {
-		return await runInExt(disk, offset, fn);
+		return await runInFat(disk, offset, size, fn);
 	} catch (e) {
 		if (!(e instanceof MountError)) {
 			throw e;
 		}
 		try {
-			return await runInFat(disk, offset, size, fn);
+			return await runInExt(disk, offset, fn);
 		} catch (e2) {
 			if (!(e2 instanceof MountError)) {
 				throw e2;
