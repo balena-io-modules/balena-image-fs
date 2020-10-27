@@ -1,4 +1,14 @@
 - commits:
+    - subject: Try fat before ext in interact
+      hash: e370b99f5e6b0453e732607aaf042ecc82df7e68
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 7.0.3
+  date: 2020-10-27T15:05:00.162Z
+- commits:
     - subject: Fix wrong error being thrown for fat partition errors
       hash: 8bdab51758e07429225c0c6615efaa63a2cffee9
       body: ''
