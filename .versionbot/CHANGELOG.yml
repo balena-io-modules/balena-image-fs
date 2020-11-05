@@ -1,4 +1,14 @@
 - commits:
+    - subject: Update ext2fs to ^3.0.3
+      hash: e8be547a8fde2bb09041ad72a2a2c17c4eda92f9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 7.0.4
+  date: 2020-11-05T16:57:06.695Z
+- commits:
     - subject: Try fat before ext in interact
       hash: e370b99f5e6b0453e732607aaf042ecc82df7e68
       body: ''
