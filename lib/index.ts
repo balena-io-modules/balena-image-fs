@@ -24,7 +24,6 @@ import * as Fs from 'fs';
 import { Disk, FileDisk, withOpenFile } from 'file-disk';
 import * as partitioninfo from 'partitioninfo';
 import { TypedError } from 'typed-error';
-import { promisify } from 'util';
 
 class MountError extends TypedError {}
 
@@ -94,9 +93,6 @@ async function runInFat<T>(
 	return await fn(fat);
 }
 
-const mountAsync = promisify(ext2fs.mount);
-const umountAsync = promisify(ext2fs.umount);
-
 async function runInExt<T>(
 	disk: Disk,
 	offset: number,
@@ -104,14 +100,14 @@ async function runInExt<T>(
 ): Promise<T> {
 	let fs: typeof Fs;
 	try {
-		fs = await mountAsync(disk, { offset });
+		fs = await ext2fs.mount(disk, offset);
 	} catch (e) {
 		throw new MountError(e);
 	}
 	try {
 		return await fn(fs);
 	} finally {
-		await umountAsync(fs);
+		await ext2fs.umount(fs);
 	}
 }
 
