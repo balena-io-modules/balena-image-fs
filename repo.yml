@@ -1,0 +1,14 @@
+type: node
+upstream:
+  - repo: file-disk
+    url: https://github.com/balena-io-modules/file-disk
+    module: 'file-disk'
+  - repo: ext2fs
+    url: https://github.com/balena-io-modules/node-ext2fs
+    module: 'ext2fs'
+  - repo: partitioninfo
+    url: https://github.com/balena-io-modules/partitioninfo
+    module: 'partitioninfo'
+  - repo: typed-error
+    url: https://github.com/balena-io-modules/typed-error
+    module: 'typed-error'
