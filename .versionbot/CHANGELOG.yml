@@ -1,98 +1,186 @@
+- commits:
+    - subject: Update file-disk from 8.0.0 to 8.0.1
+      hash: 8f4b321aa0784f914c84922122f754451dcf21d0
+      body: |
+        Update file-disk from 8.0.0 to 8.0.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+      nested:
+        - commits:
+            - subject: Add versionbot changelog
+              hash: be30ba6813603008ef4444cc1acdbb85cdf31db3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Alexis Svinartchouk
+          version: file-disk-8.0.1
+          date: 2020-11-26T21:59:04.511Z
+    - subject: Update ext2fs from 3.0.3 to 3.0.4
+      hash: bdcc7c18269098ec3f52f006381d80a6ae4481e3
+      body: |
+        Update ext2fs from 3.0.3 to 3.0.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+      nested:
+        - commits:
+            - subject: Add versionbot changelog
+              hash: e6a0eafb2097577242ef18e8d60f410f6f1a6cff
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Alexis Svinartchouk
+          version: node-ext2fs-3.0.4
+          date: 2020-11-26T18:56:37.717Z
+    - subject: Update partitioninfo from 6.0.1 to 6.0.2
+      hash: c2b2c6810f9b8e61a2a3d6257ea8933f201aa92f
+      body: |
+        Update partitioninfo from 6.0.1 to 6.0.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+      nested:
+        - commits:
+            - subject: Update file-disk from 8.0.0 to 8.0.1
+              hash: f7e5d6556623ba3bd7b972402dcb11e99730027b
+              body: |
+                Update file-disk from 8.0.0 to 8.0.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Alexis Svinartchouk
+              nested:
+                - commits:
+                    - subject: Add versionbot changelog
+                      hash: be30ba6813603008ef4444cc1acdbb85cdf31db3
+                      body: ''
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Alexis Svinartchouk
+                  version: file-disk-8.0.1
+                  date: 2020-11-26T21:59:04.511Z
+            - subject: Add versionbot changelog
+              hash: 7c0c3abe479e1bc91edb441b14392e68e12300a7
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Alexis Svinartchouk
+              nested: []
+          version: partitioninfo-6.0.2
+          date: 2020-11-27T13:53:29.571Z
+    - subject: Add versionbot changelog
+      hash: 8456bef313c0938225da727525af77c5ecfee81a
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+      nested: []
+  version: 7.0.5
+  date: 2020-11-27T15:09:09.767Z
 - version: 7.0.4
-  date: 2020-11-05T17:05:22Z
+  date: 2020-11-05T17:05:22.000Z
   commits:
     - hash: e8be547a8fde2bb09041ad72a2a2c17c4eda92f9
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Update ext2fs to ^3.0.3
-      body:
+      body: null
 - version: 7.0.3
-  date: 2020-10-27T15:18:23Z
+  date: 2020-10-27T15:18:23.000Z
   commits:
     - hash: e370b99f5e6b0453e732607aaf042ecc82df7e68
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Try fat before ext in interact
-      body:
+      body: null
 - version: 7.0.2
-  date: 2020-09-03T17:06:24Z
+  date: 2020-09-03T17:06:24.000Z
   commits:
     - hash: 8bdab51758e07429225c0c6615efaa63a2cffee9
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Fix wrong error being thrown for fat partition errors
-      body:
+      body: null
 - version: 7.0.1
-  date: 2020-08-04T10:52:53Z
+  date: 2020-08-04T10:52:53.000Z
   commits:
     - hash: 8852f1bc2f12ccacddd4b5a6b4dad4c0b4fe231d
       author: Pagan Gazzard
       footers:
         change-type: patch
       subject: Add .versionbot/CHANGELOG.yml for nested changelogs
-      body:
+      body: null
 - version: 7.0.0
-  date: 2020-07-30T15:41:13Z
+  date: 2020-07-30T15:41:13.000Z
   commits:
     - hash: 28cd068c8d1819a3579736252175ea6dc99da131
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Stop using lodash
-      body:
+      body: null
     - hash: 3e30760774133a283095ee6ad5c1b5f36c712714
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: Simplify, only leave the interact function
-      body:
+      subject: 'Simplify, only leave the interact function'
+      body: null
     - hash: 21c9cf9a2e1649c391fdfcfbe1cd26c197dec5a9
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Convert to typescript
-      body:
+      body: null
     - hash: 72c28859d4f9782ed8ca3f6b6d262b16d8a027b9
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: lint on pre-commit
-      body:
+      body: null
     - hash: 8da6c4307cf67a32ce4887b4a7a3ab8643518821
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Rename resin -> balena
-      body:
+      body: null
     - hash: 9150c6c0fee21e33beef0ddaeea56ad1ce175c96
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Replace wary with mocha
-      body:
+      body: null
 - version: 6.0.0
-  date: 2020-07-24T14:45:35Z
+  date: 2020-07-24T14:45:35.000Z
   commits:
     - hash: 2596a1c286adb8ecb78b113ff2b17be09b0f0945
       author: Alexis Svinartchouk
       footers:
         change-type: major
       subject: Update file-disk to ^7
-      body:
+      body: null
 - version: 5.0.9
-  date: 2020-03-02T17:43:38Z
+  date: 2020-03-02T17:43:38.000Z
   commits:
     - hash: c84f474d1b27709539d4f2db2606e29221d83e40
       author: Pagan Gazzard
       footers:
         change-type: patch
       subject: Update dev dependencies
-      body:
+      body: null
 - version: 5.0.8
-  date: 2019-05-06T09:36:56Z
+  date: 2019-05-06T09:36:56.000Z
   commits:
     - hash: 41aa655ef43b10863877ec3fb2e0c40f0810df9a
       author: Gergely Imreh
@@ -100,42 +188,42 @@
         change-type: patch
         signed-off-by: Gergely Imreh <gergely@balena.io>
       subject: Add bump node-ext2fs ^1.0.28 and and support/CI testing for Node 12/10
-      body:
+      body: null
 - version: 5.0.7
-  date: 2019-04-05T14:03:36Z
+  date: 2019-04-05T14:03:36.000Z
   commits:
     - hash: a91be1ddc0ba52a82d2f58e0cf1046cd5525439a
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Update jsdoc-to-markdown
-      body:
+      body: null
     - hash: 679af85a3ee01916413fc931899f6e83703ff0fa
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Update file-disk to ^6.0.0
-      body:
+      body: null
 - version: 5.0.6
-  date: 2019-01-14T17:33:41Z
+  date: 2019-01-14T17:33:41.000Z
   commits:
     - hash: 95d7c631d1341164839649af6459a78afff72d12
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Update partitioninfo to ^5.2.0
-      body:
+      body: null
 - version: 5.0.5
-  date: 2018-11-29T17:23:19Z
+  date: 2018-11-29T17:23:19.000Z
   commits:
     - hash: 8c10bb2cd91ca967531d693450e87c1684dfaeef
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Update file-disk to 5.0.0
-      body:
+      body: null
 - version: 5.0.4
-  date: 2018-05-01T11:10:52Z
+  date: 2018-05-01T11:10:52.000Z
   commits:
     - hash: 1c1ea34d9957b3eb989f658fb85a5dd020783c25
       author: Alexis Svinartchouk
@@ -144,16 +232,18 @@
       subject: Don't require chalk in utils.coffee
       body: 'Connects-To: #40'
 - version: 5.0.3
-  date: 2018-04-30T08:37:00Z
+  date: 2018-04-30T08:37:00.000Z
   commits:
     - hash: ab6e8e167f3e88a0512df8d3dc501e1ea14f62e1
       author: Pagan Gazzard
       footers:
         change-type: patch
       subject: Only require `fatfs` when it's needed.
-      body: This mitigates an ERR_BUFFER_OUT_OF_BOUNDS error with node 10 and the fatfs library
+      body: >-
+        This mitigates an ERR_BUFFER_OUT_OF_BOUNDS error with node 10 and the
+        fatfs library
 - version: 5.0.2
-  date: 2018-04-25T13:54:53Z
+  date: 2018-04-25T13:54:53.000Z
   commits:
     - hash: 4a01f98ef94bbe648417747609ccc94f29439b46
       author: Theodor Gherzan
@@ -166,7 +256,7 @@
         until one works.
         Include tests for images with gpt tables.
 - version: 5.0.1
-  date: 2018-04-25T10:40:24Z
+  date: 2018-04-25T10:40:24.000Z
   commits:
     - hash: c6cf9921057bd2966fadac182641c9c600d6a7f2
       author: Theodor Gherzan
@@ -174,9 +264,9 @@
         change-type: patch
         signed-off-by: Theodor Gherzan <theodor@resin.io>
       subject: Update ext2fs to 1.0.4
-      body:
+      body: null
 - version: 5.0.0
-  date: 2018-03-30T20:11:37Z
+  date: 2018-03-30T20:11:37.000Z
   commits:
     - hash: 8eb90c731450bb6a31d1fde7917fcc1a17da340a
       author: Alexis Svinartchouk
@@ -188,7 +278,9 @@
       author: Alexis Svinartchouk
       footers:
         chnage-type: patch
-      subject: Lint with resin-lint, update coffeescript to 1.12.7, don't publish coffeescript files.
+      subject: >-
+        Lint with resin-lint, update coffeescript to 1.12.7, don't publish
+        coffeescript files.
       body: |-
         Also remove the no longer used dev requirements.
         Conects-To: #35
@@ -202,81 +294,83 @@
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: Update file-disk, partitioninfo and node-ext2fs
+      subject: 'Update file-disk, partitioninfo and node-ext2fs'
       body: 'Connects-To: #35'
 - version: 4.1.2
-  date: 2018-01-25T14:01:35Z
+  date: 2018-01-25T14:01:35.000Z
   commits:
     - hash: 6cb0f94c1377174b37f48d665e5bb917a779d38f
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: Throw an error when partition == 0, fix docs.
+      subject: 'Throw an error when partition == 0, fix docs.'
       body: 'Connects-To: #33'
 - version: 4.1.1
-  date: 2017-12-11T14:08:43Z
+  date: 2017-12-11T14:08:43.000Z
   commits:
     - hash: 83bcdb41a39b3f2458b254b4c8c7a936812e133b
       author: Tim Perry
       footers:
         change-type: patch
       subject: Update Bluebird to v3
-      body:
+      body: null
     - hash: 2e1c3b31f7a0a327bc576f120b3782682ba5ebd7
       author: Tim Perry
       footers:
         change-type: patch
       subject: Refactor read stream logic to improve clarity & error handling
-      body:
+      body: null
 - version: 4.1.0
-  date: 2017-11-21T18:27:44Z
+  date: 2017-11-21T18:27:44.000Z
   commits:
     - hash: f8f1bce0d1e9c091817c4d29d8518e926c716ad4
       author: Tim Perry
       footers:
         change-type: minor
       subject: Upgrade partitioninfo so we can read GPT partition tables too
-      body:
+      body: null
     - hash: bf2185c3a438c57b7488fe470d878ccff64f78d4
       author: Tim Perry
       subject: Update changelog to versionbot format
-      body:
+      body: null
     - hash: c8714a723dc219ce8fd1603338f2dd86a38278b0
       author: Tim Perry
-      subject: Move from travis to circle, and set up autopublishing
-      body:
+      subject: 'Move from travis to circle, and set up autopublishing'
+      body: null
     - hash: 429ab14bff4edbdfde0c22febfe101cb4d39f2dc
       author: Tim Perry
       subject: Fix appveyor build config and move to testing Node 6 & 8
-      body:
+      body: null
     - hash: 2e8e7f9175ed31eb5d77715395c4e60965c1278a
       author: Tim Perry
       footers:
         change-type: patch
       subject: Upgrade to new ext2fs with prebuilt packages available
-      body:
+      body: null
 - version: 4.0.2
-  date: 2017-10-18T10:48:10Z
+  date: 2017-10-18T10:48:10.000Z
   commits:
     - hash: 0583bba69154677bea0525fc16eb411d008d9f9f
       author: Tim Perry
       footers:
         change-type: patch
-      subject: Make errors on read streams safe, by delaying read until someone is attached
-      body:
+      subject: >-
+        Make errors on read streams safe, by delaying read until someone is
+        attached
+      body: null
 - version: 4.0.1
-  date: 2017-06-23T13:35:07Z
+  date: 2017-06-23T13:35:07.000Z
   commits:
     - hash: 952a89f9c4ff867b392cd2234703a62bd2f20ac4
       author: Alexis Svinartchouk
       subject: update file-disk to ^1.0.1 and node-ext2fs to ^0.0.12
-      body:
+      body: null
     - hash: c28623f1453d124946d4225655a15f30f4e89160
       author: Alexis Svinartchouk
       subject: Update CHANGELOG for 4.0.0 and 4.0.1
-      body:
+      body: null
 - version: 4.0.0
-  date: 2017-06-19T18:19:39Z
+  date: 2017-06-19T18:19:39.000Z
   commits:
     - hash: ca1b3f17d7a50e93012df17e54db98ec6060b329
       author: Alexis Svinartchouk
@@ -285,26 +379,26 @@
       subject: 'Use partition number instead of {primary: X, logical: Y}.'
       body: Like Linux's sdaX
 - version: 3.0.0
-  date: 2017-06-06T11:28:00Z
+  date: 2017-06-06T11:28:00.000Z
   commits:
     - hash: 6a96832feb0283650a37c8babe5374b33ec1aba7
       author: Alexis Svinartchouk
-      subject: Use node 4, 6 and 8 on travis
-      body:
+      subject: 'Use node 4, 6 and 8 on travis'
+      body: null
     - hash: 6fce6ce122dd8a9556ae4b662f69d8616dcd1e93
       author: Alexis Svinartchouk
       subject: Support filedisk.Disk instances as well as image paths
-      body:
+      body: null
     - hash: 4f611b5fdac9fa3ccb60a7c3413bd1b919643937
       author: Alexis Svinartchouk
       subject: Put 'then's on new lines in tests
-      body:
+      body: null
     - hash: 149edfba92105cf5ee7184967faa0bf45014c0cc
       author: Juan Cruz Viotti
       footers:
         signed-off-by: Juan Cruz Viotti <jviotti@openmailbox.org>
       subject: Implement .listDirectory() function
-      body:
+      body: null
     - hash: 6713cf4f0609d54c7dfd512535331ec4cb956eac
       author: Juan Cruz Viotti
       footers:
