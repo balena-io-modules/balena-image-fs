@@ -67,7 +67,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "ext2fs": "^3.0.4",
+    "ext2fs": "^3.0.5",
     "fatfs": "^0.10.7",
     "file-disk": "^8.0.1",
     "partitioninfo": "^6.0.2",
