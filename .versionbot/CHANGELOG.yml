@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update ext2fs from 3.0.4 to 3.0.5
+      hash: 904ab47378ca2bf55ade3a151bc677aed0b56c5c
+      body: |
+        Update ext2fs from 3.0.4 to 3.0.5
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+      nested:
+        - commits:
+            - subject: Fix reading and discarding with offsets > 32 bits
+              hash: b523a8c099bec84c85f3a5393adce88a73c09d7e
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Alexis Svinartchouk
+          version: node-ext2fs-3.0.5
+          date: 2020-12-02T17:40:32.913Z
+  version: 7.0.6
+  date: 2020-12-02T18:00:40.747Z
+- commits:
     - subject: Update file-disk from 8.0.0 to 8.0.1
       hash: 8f4b321aa0784f914c84922122f754451dcf21d0
       body: |

@@ -1,6 +1,6 @@
 {
   "name": "balena-image-fs",
-  "version": "7.0.5",
+  "version": "7.0.6",
   "description": "Balena.io image filesystem manipulation utilities",
   "main": "build/index.js",
   "homepage": "https://github.com/balena-io-modules/balena-image-fs",
