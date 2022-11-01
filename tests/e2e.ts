@@ -167,7 +167,7 @@ testWithFileCopy(
 			});
 			// this should not work
 			deepEqual(false, true);
-		} catch (e) {
+		} catch (e: any) {
 			deepEqual(e.message, 'The partition number must be at least 1.');
 		}
 	},
@@ -259,7 +259,7 @@ testBoth(
 			throw new Error(
 				'Should not successfully return contents for a missing file!',
 			);
-		} catch (e) {
+		} catch (e: any) {
 			deepEqual(e.code, 'NOENT');
 		}
 	},
