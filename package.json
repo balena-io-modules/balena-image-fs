@@ -60,5 +60,8 @@
     "file-disk": "^8.0.1",
     "partitioninfo": "^6.0.3",
     "typed-error": "^3.2.1"
+  },
+  "engines": {
+    "node": ">= 16 <= 18"
   }
 }
