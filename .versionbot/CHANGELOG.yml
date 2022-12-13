@@ -1,4 +1,16 @@
 - commits:
+    - subject: update dependencies
+      hash: 71a5bb92caa0658e45d1fb36e8652ca5ea50dee9
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Zane Hitchcox
+      nested: []
+  version: 7.1.0
+  title: ""
+  date: 2022-12-13T00:03:20.006Z
+- commits:
     - subject: Update ext2fs from 3.0.4 to 3.0.5
       hash: 904ab47378ca2bf55ade3a151bc677aed0b56c5c
       body: |
@@ -11,7 +23,7 @@
         - commits:
             - subject: Fix reading and discarding with offsets > 32 bits
               hash: b523a8c099bec84c85f3a5393adce88a73c09d7e
-              body: ''
+              body: ""
               footer:
                 Change-type: patch
                 change-type: patch
@@ -33,7 +45,7 @@
         - commits:
             - subject: Add versionbot changelog
               hash: be30ba6813603008ef4444cc1acdbb85cdf31db3
-              body: ''
+              body: ""
               footer:
                 Change-type: patch
                 change-type: patch
@@ -52,7 +64,7 @@
         - commits:
             - subject: Add versionbot changelog
               hash: e6a0eafb2097577242ef18e8d60f410f6f1a6cff
-              body: ''
+              body: ""
               footer:
                 Change-type: patch
                 change-type: patch
@@ -81,7 +93,7 @@
                 - commits:
                     - subject: Add versionbot changelog
                       hash: be30ba6813603008ef4444cc1acdbb85cdf31db3
-                      body: ''
+                      body: ""
                       footer:
                         Change-type: patch
                         change-type: patch
@@ -90,7 +102,7 @@
                   date: 2020-11-26T21:59:04.511Z
             - subject: Add versionbot changelog
               hash: 7c0c3abe479e1bc91edb441b14392e68e12300a7
-              body: ''
+              body: ""
               footer:
                 Change-type: patch
                 change-type: patch
@@ -100,7 +112,7 @@
           date: 2020-11-27T13:53:29.571Z
     - subject: Add versionbot changelog
       hash: 8456bef313c0938225da727525af77c5ecfee81a
-      body: ''
+      body: ""
       footer:
         Change-type: patch
         change-type: patch
@@ -157,7 +169,7 @@
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: 'Simplify, only leave the interact function'
+      subject: Simplify, only leave the interact function
       body: null
     - hash: 21c9cf9a2e1649c391fdfcfbe1cd26c197dec5a9
       author: Alexis Svinartchouk
@@ -252,7 +264,7 @@
       footers:
         change-type: patch
       subject: Don't require chalk in utils.coffee
-      body: 'Connects-To: #40'
+      body: "Connects-To: #40"
 - version: 5.0.3
   date: 2018-04-30T08:37:00.000Z
   commits:
@@ -261,8 +273,7 @@
       footers:
         change-type: patch
       subject: Only require `fatfs` when it's needed.
-      body: >-
-        This mitigates an ERR_BUFFER_OUT_OF_BOUNDS error with node 10 and the
+      body: This mitigates an ERR_BUFFER_OUT_OF_BOUNDS error with node 10 and the
         fatfs library
 - version: 5.0.2
   date: 2018-04-25T13:54:53.000Z
@@ -295,13 +306,12 @@
       footers:
         change-type: patch
       subject: Update lodash to v4
-      body: 'Connects-To: #35'
+      body: "Connects-To: #35"
     - hash: e0008bb8a435bd39549684f2b5e48d819fb2a3e9
       author: Alexis Svinartchouk
       footers:
         chnage-type: patch
-      subject: >-
-        Lint with resin-lint, update coffeescript to 1.12.7, don't publish
+      subject: Lint with resin-lint, update coffeescript to 1.12.7, don't publish
         coffeescript files.
       body: |-
         Also remove the no longer used dev requirements.
@@ -311,13 +321,13 @@
       footers:
         change-type: patch
       subject: Don't version built files
-      body: 'Connects-To: #35'
+      body: "Connects-To: #35"
     - hash: 26b8cc26ec6061f047aaf3d696e3a4e017254a00
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: 'Update file-disk, partitioninfo and node-ext2fs'
-      body: 'Connects-To: #35'
+      subject: Update file-disk, partitioninfo and node-ext2fs
+      body: "Connects-To: #35"
 - version: 4.1.2
   date: 2018-01-25T14:01:35.000Z
   commits:
@@ -325,8 +335,8 @@
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: 'Throw an error when partition == 0, fix docs.'
-      body: 'Connects-To: #33'
+      subject: Throw an error when partition == 0, fix docs.
+      body: "Connects-To: #33"
 - version: 4.1.1
   date: 2017-12-11T14:08:43.000Z
   commits:
@@ -357,7 +367,7 @@
       body: null
     - hash: c8714a723dc219ce8fd1603338f2dd86a38278b0
       author: Tim Perry
-      subject: 'Move from travis to circle, and set up autopublishing'
+      subject: Move from travis to circle, and set up autopublishing
       body: null
     - hash: 429ab14bff4edbdfde0c22febfe101cb4d39f2dc
       author: Tim Perry
@@ -376,8 +386,7 @@
       author: Tim Perry
       footers:
         change-type: patch
-      subject: >-
-        Make errors on read streams safe, by delaying read until someone is
+      subject: Make errors on read streams safe, by delaying read until someone is
         attached
       body: null
 - version: 4.0.1
@@ -398,14 +407,14 @@
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: 'Use partition number instead of {primary: X, logical: Y}.'
+      subject: "Use partition number instead of {primary: X, logical: Y}."
       body: Like Linux's sdaX
 - version: 3.0.0
   date: 2017-06-06T11:28:00.000Z
   commits:
     - hash: 6a96832feb0283650a37c8babe5374b33ec1aba7
       author: Alexis Svinartchouk
-      subject: 'Use node 4, 6 and 8 on travis'
+      subject: Use node 4, 6 and 8 on travis
       body: null
     - hash: 6fce6ce122dd8a9556ae4b662f69d8616dcd1e93
       author: Alexis Svinartchouk
