@@ -58,7 +58,7 @@ async function runInFat<T>(
 					sectorPosition(sector),
 				);
 				callback(null, bytesRead, buffer);
-			} catch (e) {
+			} catch (e: any) {
 				callback(e);
 			}
 		},
@@ -79,7 +79,7 @@ async function runInFat<T>(
 					sectorPosition(sector),
 				);
 				callback(null, bytesWritten, buffer);
-			} catch (e) {
+			} catch (e: any) {
 				callback(e);
 			}
 		},
@@ -101,7 +101,7 @@ async function runInExt<T>(
 	let fs: typeof Fs;
 	try {
 		fs = await ext2fs.mount(disk, offset);
-	} catch (e) {
+	} catch (e: any) {
 		throw new MountError(e);
 	}
 	try {
