@@ -62,7 +62,7 @@
     "typed-error": "^3.2.1"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   },
   "versionist": {
     "publishedAt": "2023-01-05T22:29:15.183Z"
