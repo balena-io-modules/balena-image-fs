@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update Node.js to 18.12.1
+      hash: 8851e2b92e2bc0e33ae7d8a6a77cb89327cf43c6
+      body: |
+        Update node to 18.12.1
+
+        Update node from 16.19.0 to 18.12.1
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested: []
+  version: 7.2.0
+  title: ""
+  date: 2023-01-05T22:46:30.363Z
+- commits:
     - subject: Update dependencies
       hash: 9acc4bd2e793076095880f1924f8540b4d95fa9c
       body: ""
