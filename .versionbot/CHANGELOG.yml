@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for Node 18
+      hash: 2a3bef60d9688dce26bd1c9546a28c98cf6d2566
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Akis Kesoglou
+      nested: []
+  version: 7.2.0
+  title: ""
+  date: 2023-01-20T14:27:37.169Z
+- commits:
     - subject: Update dependencies
       hash: 9acc4bd2e793076095880f1924f8540b4d95fa9c
       body: ""
