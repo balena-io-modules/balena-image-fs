@@ -1,7 +1,7 @@
 {
   "name": "balena-image-fs",
   "version": "7.1.2",
-  "description": "Balena.io image filesystem manipulation utilities",
+  "description": "Image filesystem manipulation utilities",
   "main": "build/index.js",
   "homepage": "https://github.com/balena-io-modules/balena-image-fs",
   "repository": {
@@ -35,11 +35,7 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Juan Cruz Viotti <juan@balena.io>",
-  "contributors": [
-    "Alexis Svinartchouk <alexis@balena.io>",
-    "Juan Cruz Viotti <juan@balena.io>"
-  ],
+  "author": "Balena Ltd. <hello@balena.io>",
   "license": "Apache-2.0",
   "devDependencies": {
     "@balena/lint": "^6.2.1",
@@ -55,14 +51,14 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "ext2fs": "4.1.7",
+    "ext2fs": "^4.2.1",
     "fatfs": "^0.10.8",
     "file-disk": "^8.0.1",
     "partitioninfo": "^6.0.3",
     "typed-error": "^3.2.1"
   },
   "engines": {
-    "node": "16"
+    "node": ">=16"
   },
   "versionist": {
     "publishedAt": "2023-01-05T22:29:15.183Z"
