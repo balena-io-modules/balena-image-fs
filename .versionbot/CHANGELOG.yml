@@ -1,4 +1,21 @@
 - commits:
+    - subject: Remove repo config from flowzone.yml
+      hash: 3e0053a097a04c1d0c47139bc53787f07bfeb014
+      body: |
+        This functionality is being deprecated in Flowzone.
+
+        See: https://github.com/product-os/flowzone/pull/833
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 7.2.1
+  title: ""
+  date: 2023-12-19T21:54:42.129Z
+- commits:
     - subject: Add support for Node 18
       hash: 2a3bef60d9688dce26bd1c9546a28c98cf6d2566
       body: ""
