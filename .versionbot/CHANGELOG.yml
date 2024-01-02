@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/node to v20
+      hash: 4a5f55ae8752b1b28638d3f4016910d5b2057d80
+      body: |
+        Update @types/node from 18.11.18 to 20.10.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 7.2.2
+  title: ""
+  date: 2024-01-02T18:50:24.990Z
+- commits:
     - subject: Remove repo config from flowzone.yml
       hash: 3e0053a097a04c1d0c47139bc53787f07bfeb014
       body: |
