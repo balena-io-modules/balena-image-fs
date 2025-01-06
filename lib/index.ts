@@ -21,6 +21,7 @@ limitations under the License.
 import * as ext2fs from 'ext2fs';
 import * as fatfs from 'fatfs';
 import * as Fs from 'fs';
+import { promisify } from 'util';
 import { Disk, FileDisk, withOpenFile } from 'file-disk';
 import * as partitioninfo from 'partitioninfo';
 import { TypedError } from 'typed-error';
@@ -90,6 +91,29 @@ async function runInFat<T>(
 		});
 		fat.on('ready', resolve);
 	});
+	// Check whether fatfs added the promises namespace on their side
+	if (fat.promises == null) {
+		// Lazily populate the promise based variants
+		const originalFatKeys = Object.keys(fat);
+		Object.defineProperty(fat, 'promises', {
+			enumerable: true,
+			configurable: true,
+			get() {
+				const promises: Record<string, (...args: any[]) => Promise<any>> = {};
+				for (const key of originalFatKeys) {
+					const value = fat[key];
+					if (typeof value === 'function' && (key in Fs.promises)) {
+						promises[key] = promisify(value);
+					}
+				}
+				originalFatKeys.length = 0;
+				// We need the delete first as the current property is read-only
+				// and the delete removes that restriction
+				delete this.promises;
+				return (this.promises = promises);
+			},
+		});
+	}
 	return await fn(fat);
 }
 

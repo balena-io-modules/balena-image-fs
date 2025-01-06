@@ -1,7 +1,7 @@
 import { deepEqual } from 'assert';
-import { promisifyAll } from 'bluebird';
 import { FileDisk, withOpenFile } from 'file-disk';
 import * as Fs from 'fs';
+import { promisify } from 'util';
 import * as Path from 'path';
 import * as tmp from 'tmp';
 
@@ -79,7 +79,9 @@ async function withFileCopy<T>(
 	}
 }
 
-async function waitStream(stream: NodeJS.ReadableStream): Promise<void> {
+async function waitStream(
+	stream: NodeJS.ReadableStream | NodeJS.WritableStream,
+): Promise<void> {
 	await new Promise((resolve, reject) => {
 		stream.on('error', reject);
 		stream.on('close', resolve);
@@ -111,7 +113,7 @@ function testWithFileCopy(
 }
 function testFilename<T>(
 	title: string,
-	fn: (fs: any) => Promise<T>,
+	fn: (fs: typeof Fs) => Promise<T>,
 	image: { image: string; partition?: number },
 ) {
 	testWithFileCopy(title, image.image, async (fileCopy: string) => {
@@ -119,7 +121,7 @@ function testFilename<T>(
 			fileCopy,
 			image.partition,
 			async ($fs: typeof Fs) => {
-				await fn(promisifyAll($fs));
+				await fn($fs);
 			},
 		);
 	});
@@ -127,7 +129,7 @@ function testFilename<T>(
 
 function testFileDisk<T>(
 	title: string,
-	fn: (fs: any) => Promise<T>,
+	fn: (fs: typeof Fs) => Promise<T>,
 	image: { image: string; partition?: number },
 ) {
 	testWithFileCopy(
@@ -140,7 +142,7 @@ function testFileDisk<T>(
 					disk,
 					image.partition,
 					async ($fs: typeof Fs) => {
-						await fn(promisifyAll($fs));
+						await fn($fs);
 					},
 				);
 			});
@@ -150,11 +152,22 @@ function testFileDisk<T>(
 
 function testBoth<T>(
 	title: string,
-	fn: (fs: any) => Promise<T>,
+	fn:
+		| ((fs: typeof Fs) => Promise<T>)
+		| {
+				callback: (fs: typeof Fs) => Promise<T>;
+				promises: (fs: typeof Fs) => Promise<T>;
+		  },
 	image: { image: string; partition?: number },
 ) {
-	testFilename(title, fn, image);
-	testFileDisk(title, fn, image);
+	const variants =
+		typeof fn === 'function' ? [['', fn] as const] : Object.entries(fn);
+	for (const [titlePart, $fn] of variants) {
+		const titleWithVariant =
+			titlePart !== '' ? `${title} [${titlePart}]` : title;
+		testFilename(titleWithVariant, $fn, image);
+		testFileDisk(titleWithVariant, $fn, image);
+	}
 }
 
 testWithFileCopy(
@@ -173,36 +186,44 @@ testWithFileCopy(
 	},
 );
 
+const overlaysContents = [
+	'._ds1307-rtc-overlay.dtb',
+	'._hifiberry-amp-overlay.dtb',
+	'._hifiberry-dac-overlay.dtb',
+	'._hifiberry-dacplus-overlay.dtb',
+	'._hifiberry-digi-overlay.dtb',
+	'._iqaudio-dac-overlay.dtb',
+	'._iqaudio-dacplus-overlay.dtb',
+	'._lirc-rpi-overlay.dtb',
+	'._pcf8523-rtc-overlay.dtb',
+	'._pps-gpio-overlay.dtb',
+	'._w1-gpio-overlay.dtb',
+	'._w1-gpio-pullup-overlay.dtb',
+	'ds1307-rtc-overlay.dtb',
+	'hifiberry-amp-overlay.dtb',
+	'hifiberry-dac-overlay.dtb',
+	'hifiberry-dacplus-overlay.dtb',
+	'hifiberry-digi-overlay.dtb',
+	'iqaudio-dac-overlay.dtb',
+	'iqaudio-dacplus-overlay.dtb',
+	'lirc-rpi-overlay.dtb',
+	'pcf8523-rtc-overlay.dtb',
+	'pps-gpio-overlay.dtb',
+	'w1-gpio-overlay.dtb',
+	'w1-gpio-pullup-overlay.dtb',
+];
+
 testBoth(
 	'should list files from a fat partition in a raspberrypi image',
-	async ($fs: any) => {
-		const contents = await $fs.readdirAsync('/overlays');
-		deepEqual(contents, [
-			'._ds1307-rtc-overlay.dtb',
-			'._hifiberry-amp-overlay.dtb',
-			'._hifiberry-dac-overlay.dtb',
-			'._hifiberry-dacplus-overlay.dtb',
-			'._hifiberry-digi-overlay.dtb',
-			'._iqaudio-dac-overlay.dtb',
-			'._iqaudio-dacplus-overlay.dtb',
-			'._lirc-rpi-overlay.dtb',
-			'._pcf8523-rtc-overlay.dtb',
-			'._pps-gpio-overlay.dtb',
-			'._w1-gpio-overlay.dtb',
-			'._w1-gpio-pullup-overlay.dtb',
-			'ds1307-rtc-overlay.dtb',
-			'hifiberry-amp-overlay.dtb',
-			'hifiberry-dac-overlay.dtb',
-			'hifiberry-dacplus-overlay.dtb',
-			'hifiberry-digi-overlay.dtb',
-			'iqaudio-dac-overlay.dtb',
-			'iqaudio-dacplus-overlay.dtb',
-			'lirc-rpi-overlay.dtb',
-			'pcf8523-rtc-overlay.dtb',
-			'pps-gpio-overlay.dtb',
-			'w1-gpio-overlay.dtb',
-			'w1-gpio-pullup-overlay.dtb',
-		]);
+	{
+		callback: async ($fs) => {
+			const contents = await promisify($fs.readdir)('/overlays');
+			deepEqual(contents, overlaysContents);
+		},
+		promises: async ($fs) => {
+			const contents = await $fs.promises.readdir('/overlays');
+			deepEqual(contents, overlaysContents);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -212,9 +233,15 @@ testBoth(
 
 testBoth(
 	'should list files from an ext4 partition in a raspberrypi image',
-	async ($fs: any) => {
-		const contents = await $fs.readdirAsync('/');
-		deepEqual(contents, ['lost+found', '1']);
+	{
+		callback: async ($fs) => {
+			const contents = await promisify($fs.readdir)('/');
+			deepEqual(contents, ['lost+found', '1']);
+		},
+		promises: async ($fs) => {
+			const contents = await $fs.promises.readdir('/');
+			deepEqual(contents, ['lost+found', '1']);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -240,9 +267,17 @@ testBoth(
 
 testBoth(
 	'should read a config.json from a raspberrypi using readFile',
-	async ($fs: any) => {
-		const contents = await $fs.readFileAsync('/config.json');
-		deepEqual(JSON.parse(contents), FILES.raspberrypi['config.json']);
+	{
+		callback: async ($fs) => {
+			const contents = await promisify($fs.readFile)('/config.json');
+			// @ts-expect-error
+			deepEqual(JSON.parse(contents), FILES.raspberrypi['config.json']);
+		},
+		promises: async ($fs) => {
+			const contents = await $fs.promises.readFile('/config.json');
+			// @ts-expect-error
+			deepEqual(JSON.parse(contents), FILES.raspberrypi['config.json']);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -252,7 +287,7 @@ testBoth(
 
 testBoth(
 	'should fail cleanly trying to read a missing file on a raspberrypi',
-	async ($fs: any) => {
+	async ($fs) => {
 		try {
 			const stream = $fs.createReadStream('/non-existent-file.txt');
 			await extract(stream);
@@ -277,7 +312,9 @@ testBoth(
 		const outputStream = $fs.createWriteStream(output);
 		inputStream.pipe(outputStream);
 		await waitStream(outputStream);
-		const contents = await $fs.readFileAsync(output, { encoding: 'utf8' });
+		const contents = await promisify($fs.readFile)(output, {
+			encoding: 'utf8',
+		});
 		deepEqual(contents, LOREM_CONTENT);
 	},
 	{
@@ -294,7 +331,9 @@ testBoth(
 		const outputStream = $fs.createWriteStream(output);
 		inputStream.pipe(outputStream);
 		await waitStream(outputStream);
-		const contents = await $fs.readFileAsync(output, { encoding: 'utf8' });
+		const contents = await promisify($fs.readFile)(output, {
+			encoding: 'utf8',
+		});
 		deepEqual(contents, LOREM_CONTENT);
 	},
 	{
@@ -305,11 +344,23 @@ testBoth(
 
 testBoth(
 	'should copy text to a raspberry pi partition using writeFile',
-	async ($fs) => {
-		const output = '/lorem.txt';
-		await $fs.writeFileAsync(output, LOREM_CONTENT);
-		const contents = await $fs.readFileAsync(output, { encoding: 'utf8' });
-		deepEqual(contents, LOREM_CONTENT);
+	{
+		callback: async ($fs) => {
+			const output = '/lorem.txt';
+			await promisify($fs.writeFile)(output, LOREM_CONTENT);
+			const contents = await promisify($fs.readFile)(output, {
+				encoding: 'utf8',
+			});
+			deepEqual(contents, LOREM_CONTENT);
+		},
+		promises: async ($fs) => {
+			const output = '/lorem.txt';
+			await $fs.promises.writeFile(output, LOREM_CONTENT);
+			const contents = await $fs.promises.readFile(output, {
+				encoding: 'utf8',
+			});
+			deepEqual(contents, LOREM_CONTENT);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -325,7 +376,9 @@ testBoth(
 		const outputStream = $fs.createWriteStream(output);
 		inputStream.pipe(outputStream);
 		await waitStream(outputStream);
-		const contents = await $fs.readFileAsync(output, { encoding: 'utf8' });
+		const contents = await promisify($fs.readFile)(output, {
+			encoding: 'utf8',
+		});
 		deepEqual(contents, LOREM_CONTENT);
 	},
 	{
@@ -350,9 +403,15 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for fat partitions',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, RASPBERRY_FIRST_PARTITION_FILES);
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, RASPBERRY_FIRST_PARTITION_FILES);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, RASPBERRY_FIRST_PARTITION_FILES);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -362,9 +421,15 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for ext partitions',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, ['lost+found', '1']);
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
 	},
 	{
 		image: RASPBERRYPI,
@@ -374,9 +439,15 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for raw ext partitions',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, ['lost+found', '1']);
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
 	},
 	{
 		image: RAW_EXT2,
@@ -384,21 +455,33 @@ testBoth(
 );
 
 testBoth(
-	'should return a node fs like interface for raw fat partitions',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, ['config.json']);
+	'should return a node fs like interface for raw ext partitions',
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, ['lost+found', '1']);
+		},
 	},
 	{
-		image: EDISON,
+		image: RAW_EXT2,
 	},
 );
 
 testBoth(
 	'should return a node fs like interface for fat partitions held in gpt typed images',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, ['fat.file']);
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, ['fat.file']);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, ['fat.file']);
+		},
 	},
 	{
 		image: GPT,
@@ -408,9 +491,15 @@ testBoth(
 
 testBoth(
 	'should return a node fs like interface for ext partitions held in gpt typed images',
-	async ($fs) => {
-		const files = await $fs.readdirAsync('/');
-		deepEqual(files, ['lost+found', 'ext4.file']);
+	{
+		callback: async ($fs) => {
+			const files = await promisify($fs.readdir)('/');
+			deepEqual(files, ['lost+found', 'ext4.file']);
+		},
+		promises: async ($fs) => {
+			const files = await $fs.promises.readdir('/');
+			deepEqual(files, ['lost+found', 'ext4.file']);
+		},
 	},
 	{
 		image: GPT,
