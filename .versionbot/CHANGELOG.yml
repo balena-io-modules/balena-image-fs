@@ -1,4 +1,32 @@
 - commits:
+    - subject: Drop Bluebird from devDependencies
+      hash: e4b5c71032112664ba8dac4c9edc5dad5445818d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: "flowzone: Remove empty with clause"
+      hash: e83b4ef55eeebffb86d0bcda78dd45ee0651c76f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Add the promises namespace as part of the exposed fs
+      hash: 9b73f44020de213a682afc21092e20caf68eaff8
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.3.0
+  title: ""
+  date: 2025-01-06T14:31:31.244Z
+- commits:
     - subject: Update dependency @types/node to v20
       hash: 4a5f55ae8752b1b28638d3f4016910d5b2057d80
       body: |
