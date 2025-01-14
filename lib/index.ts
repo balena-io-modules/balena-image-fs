@@ -26,6 +26,8 @@ import { Disk, FileDisk, withOpenFile } from 'file-disk';
 import * as partitioninfo from 'partitioninfo';
 import { TypedError } from 'typed-error';
 
+export { getFsLabel, LabelNotFound } from './fsLabel'
+
 class MountError extends TypedError {}
 
 const SECTOR_SIZE = 512;
