@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add getLabel() to retrieve filesystem label
+      hash: a443d9371506db4e4874e787d8d518eef4f68e58
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+  version: 7.4.0
+  title: ""
+  date: 2025-01-27T08:51:07.238Z
+- commits:
     - subject: Drop Bluebird from devDependencies
       hash: e4b5c71032112664ba8dac4c9edc5dad5445818d
       body: ""
