@@ -38,7 +38,7 @@
   "author": "Balena Ltd. <hello@balena.io>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@balena/lint": "^6.2.1",
+    "@balena/lint": "^7.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.0.0",
     "@types/tmp": "^0.2.3",
