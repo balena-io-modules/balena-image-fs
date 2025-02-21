@@ -1,4 +1,18 @@
 - commits:
+    - subject: bump ext2fs to 4.2.4
+      hash: 300cc6d5cdd12ce0c47986efe98702511a03f4a5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ryan Cooke<ryan@balena.io>
+        signed-off-by: Ryan Cooke<ryan@balena.io>
+      author: Ryan Cooke
+      nested: []
+  version: 7.4.1
+  title: ""
+  date: 2025-02-21T10:21:04.380Z
+- commits:
     - subject: Add getLabel() to retrieve filesystem label
       hash: a443d9371506db4e4874e787d8d518eef4f68e58
       body: ""
