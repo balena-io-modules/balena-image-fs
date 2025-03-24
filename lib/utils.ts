@@ -2,7 +2,6 @@ import type { FileDisk } from 'file-disk';
 import type {
 	GetPartitionsResult,
 	GPTPartition,
-	MBRPartition,
 } from 'partitioninfo';
 import { getFsLabel, LabelNotFound } from './fsLabel';
 
@@ -30,14 +29,8 @@ export async function findPartition(
 	partitionInfo: GetPartitionsResult,
 	names: string[],
 ): Promise<FindPartitionResult|undefined> {
-	const { partitions } = partitionInfo;
-	const isGPT = (
-		partsInfo: GetPartitionsResult,
-		_parts: Array<GPTPartition | MBRPartition>,
-	): _parts is GPTPartition[] => partsInfo.type === 'gpt';
-
-	if (isGPT(partitionInfo, partitions)) {
-		const partition = partitions.find((gptPartInfo: GPTPartition) =>
+	if (partitionInfo.type === 'gpt') {
+		const partition = partitionInfo.partitions.find((gptPartInfo: GPTPartition) =>
 			names.includes(gptPartInfo.name),
 		);
 		if (partition && typeof partition.index === 'number') {
@@ -48,7 +41,7 @@ export async function findPartition(
 		}
 	} else {
 		// MBR
-		for (const partition of partitions) {
+		for (const partition of partitionInfo.partitions) {
 			try {
 				const label = await getFsLabel(fileDisk, partition);
 				if (names.includes(label) && typeof partition.index === 'number') {
