@@ -27,6 +27,7 @@ import * as partitioninfo from 'partitioninfo';
 import { TypedError } from 'typed-error';
 
 export { getFsLabel, LabelNotFound } from './fsLabel'
+export { findPartition, FindPartitionResult } from './utils'
 
 class MountError extends TypedError {}
 
