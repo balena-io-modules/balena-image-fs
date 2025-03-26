@@ -1,4 +1,40 @@
 - commits:
+    - subject: Update @balena/lint to v9
+      hash: 4da5fa44a43047cdb4f96c37a73a0f0674c9327b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Remove the no longer needed gpt detection helper
+      hash: 0973da43aa321e4e2dad4b83c5beb965b8da7044
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Update TypeScript to 5.8.2
+      hash: 1580e7d577e0183c2b5d4f9ce3d0b8f519e4dff3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Drop the package-lock.json
+      hash: 400ba55caa4c4af8098e2b164cd184651c283230
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.5.1
+  title: ""
+  date: 2025-03-26T17:51:35.381Z
+- commits:
     - subject: Add function to find a partition by name/label
       hash: 4e9b1cfb2739b738dd12bda7d1623e08ad208b46
       body: ""
