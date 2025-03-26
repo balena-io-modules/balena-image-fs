@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add function to find a partition by name/label
+      hash: 4e9b1cfb2739b738dd12bda7d1623e08ad208b46
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+  version: 7.5.0
+  title: ""
+  date: 2025-03-26T12:35:30.365Z
+- commits:
     - subject: bump ext2fs to 4.2.4
       hash: 300cc6d5cdd12ce0c47986efe98702511a03f4a5
       body: ""
