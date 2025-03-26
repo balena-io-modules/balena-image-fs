@@ -175,7 +175,7 @@ testWithFileCopy(
 	RASPBERRYPI,
 	async (fileCopy: string) => {
 		try {
-			await imagefs.interact(fileCopy, 0, async (_fs: typeof Fs) => {
+			await imagefs.interact(fileCopy, 0, async () => {
 				// noop
 			});
 			// this should not work
@@ -269,13 +269,15 @@ testBoth(
 	'should read a config.json from a raspberrypi using readFile',
 	{
 		callback: async ($fs) => {
-			const contents = await promisify($fs.readFile)('/config.json');
-			// @ts-expect-error
+			const contents = await promisify($fs.readFile)('/config.json', {
+				encoding: 'utf8',
+			});
 			deepEqual(JSON.parse(contents), FILES.raspberrypi['config.json']);
 		},
 		promises: async ($fs) => {
-			const contents = await $fs.promises.readFile('/config.json');
-			// @ts-expect-error
+			const contents = await $fs.promises.readFile('/config.json', {
+				encoding: 'utf8',
+			});
 			deepEqual(JSON.parse(contents), FILES.raspberrypi['config.json']);
 		},
 	},

@@ -19,8 +19,8 @@
     "test": "tests"
   },
   "scripts": {
-    "lint": "balena-lint --typescript lib tests",
-    "lint-fix": "balena-lint --fix --typescript lib tests",
+    "lint": "balena-lint -t tsconfig.dev.json --typescript lib tests",
+    "lint-fix": "balena-lint -t tsconfig.dev.json --fix --typescript lib tests",
     "clean": "rm -rf build",
     "build": "npm run clean && tsc",
     "test": "npm run lint && mocha -r ts-node/register tests/*.ts",
@@ -38,7 +38,7 @@
   "author": "Balena Ltd. <hello@balena.io>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@balena/lint": "^6.2.1",
+    "@balena/lint": "^9.1.6",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.0.0",
     "@types/tmp": "^0.2.3",
