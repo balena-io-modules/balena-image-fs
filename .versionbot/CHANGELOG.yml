@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency jsdoc-to-markdown to v9
+      hash: f22a0a1dae022035e5357c147f681f8b7c703fe3
+      body: |
+        Update jsdoc-to-markdown from 8.0.3 to 9.1.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.5.2
+  title: ""
+  date: 2025-04-02T10:40:31.219Z
+- commits:
     - subject: Update @balena/lint to v9
       hash: 4da5fa44a43047cdb4f96c37a73a0f0674c9327b
       body: ""
