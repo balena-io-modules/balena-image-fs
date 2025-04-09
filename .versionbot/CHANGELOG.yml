@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency mocha to v11
+      hash: adbbd26449df5607b75230df1d041f3db412f163
+      body: |
+        Update mocha from 10.8.2 to 11.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.5.3
+  title: ""
+  date: 2025-04-09T09:14:18.653Z
+- commits:
     - subject: Update dependency jsdoc-to-markdown to v9
       hash: f22a0a1dae022035e5357c147f681f8b7c703fe3
       body: |
