@@ -27,6 +27,11 @@ $ npm install --save balena-image-fs
 Documentation
 -------------
 
+
+* [imagefs](#module_imagefs)
+    * [~interact()](#module_imagefs..interact)
+    * [~explorePartition(imagePath, partitionNames, exploreFn)](#module_imagefs..explorePartition) ⇒ <code>T</code>
+
 <a name="module_imagefs..interact"></a>
 
 ### imagefs~interact()
@@ -39,6 +44,19 @@ const contents = await interact('/foo/bar.img', 5, async (fs) => {
 });
 console.log(contents);
 ```
+<a name="module_imagefs..explorePartition"></a>
+
+### imagefs~explorePartition(imagePath, partitionNames, exploreFn) ⇒ <code>T</code>
+**Kind**: inner method of [<code>imagefs</code>](#module_imagefs)  
+**Summary**: Allow a provided function to explore the contents of the
+first found partition of an image  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| imagePath | <code>string</code> | pathname of image for search |
+| partitionNames | <code>Array.&lt;string&gt;</code> | partitions to find |
+| exploreFn | <code>function</code> | function for exploration |
+
 
 Support
 -------

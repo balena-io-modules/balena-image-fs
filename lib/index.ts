@@ -25,6 +25,7 @@ import { promisify } from 'util';
 import { Disk, FileDisk, withOpenFile } from 'file-disk';
 import * as partitioninfo from 'partitioninfo';
 import { TypedError } from 'typed-error';
+import { findPartition } from './utils';
 
 export { getFsLabel, LabelNotFound } from './fsLabel'
 export { findPartition, FindPartitionResult } from './utils'
@@ -206,3 +207,34 @@ export async function interact<T>(
 		throw new Error('image must be a String (file path) or a Disk instance');
 	}
 }
+
+/**
+ * @summary Allow a provided function to explore the contents of the
+ * first found partition of an image
+ *
+ * @param {string} imagePath - pathname of image for search
+ * @param {string[]} partitionNames - partitions to find
+ * @param {function(fs): Promise<T>} - function for exploration
+ * @returns {T}
+ */
+export async function explorePartition<T>(
+	imagePath: string,
+	partitionNames: string[],
+	exploreFn: (fs: typeof Fs) => Promise<T>,
+): Promise<T> {
+	return await withOpenFile(imagePath, 'r', async (handle) => {
+		const disk = new FileDisk(handle, true, false, false);
+		const partitionInfo = await partitioninfo.getPartitions(disk, {
+			includeExtended: false,
+			getLogical: true,
+		});
+
+		const findResult = await findPartition(disk, partitionInfo, partitionNames);
+		if (findResult == null) {
+			throw new Error(`Can't find partition for ${partitionNames}`);
+		}
+
+		return await interact<T>(disk, findResult.index, exploreFn);
+	});
+}
+
