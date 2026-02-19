@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Add id-token: write permission for NPM OIDC publishing"
+      hash: 9b1999c37a0e8ef8bc0ac5e439e22bf8c7b2cdea
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 7.6.1
+  title: ""
+  date: 2026-02-19T14:01:23.297Z
+- commits:
     - subject: Add `explorePartition` function for exploring partitions of an image
       hash: faa87056ed9ced0dd7ed338f0a017a4628bb6802
       body: ""
