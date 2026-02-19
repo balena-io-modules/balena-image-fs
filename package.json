@@ -40,7 +40,7 @@
   "devDependencies": {
     "@balena/lint": "^9.1.6",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
     "@types/tmp": "^0.2.3",
     "jsdoc-to-markdown": "^9.0.0",
     "mocha": "^11.0.0",
