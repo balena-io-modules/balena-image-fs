@@ -17,5 +17,5 @@ jobs:
     if: |
       (github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'pull_request') ||
       (github.event.pull_request.head.repo.full_name != github.repository && github.event_name == 'pull_request_target')
-    uses: product-os/flowzone/.github/workflows/flowzone.yml@7b87702ed500aad15c3b8b85c622c709c63e7238 # master
+    uses: product-os/flowzone/.github/workflows/flowzone.yml@7b1359dc5b9ca4e6621b6ea7427128569d3f68d8 # master
     secrets: inherit
