@@ -1,6 +1,6 @@
 {
   "name": "balena-image-fs",
-  "version": "7.6.9",
+  "version": "7.6.10",
   "description": "Image filesystem manipulation utilities",
   "main": "build/index.js",
   "homepage": "https://github.com/balena-io-modules/balena-image-fs",
@@ -59,6 +59,6 @@
     "node": ">=16"
   },
   "versionist": {
-    "publishedAt": "2026-03-26T03:48:58.481Z"
+    "publishedAt": "2026-03-26T05:30:41.130Z"
   }
 }
