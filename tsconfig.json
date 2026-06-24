@@ -3,6 +3,7 @@
 		"target": "es2018",
 		"strict": true,
 		"typeRoots": ["typings", "node_modules/@types"],
+		"rootDir": "lib",
 		"outDir": "build",
 		"declaration": true,
 		"sourceMap": true,
@@ -12,5 +13,8 @@
 		"importHelpers": true,
 		"resolveJsonModule": true
 	},
-	"include": ["lib"]
+	"ts-node": {
+		"files": true
+	},
+	"include": ["lib", "typings/**/*.d.ts"]
 }
