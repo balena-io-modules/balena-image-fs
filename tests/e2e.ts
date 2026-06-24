@@ -1,6 +1,7 @@
 import { deepEqual } from 'assert';
 import { FileDisk, withOpenFile } from 'file-disk';
 import * as Fs from 'fs';
+import { it } from 'mocha';
 import { promisify } from 'util';
 import * as Path from 'path';
 import * as tmp from 'tmp';

@@ -1,10 +1,12 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"rootDir": "."
 	},
 	"include": [
 		"lib/**/*",
-		"tests/**/*"
+		"tests/**/*",
+		"typings/**/*.d.ts"
 	]
 }
