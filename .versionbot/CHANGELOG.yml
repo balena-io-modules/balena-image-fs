@@ -1,4 +1,17 @@
 - commits:
+    - subject: Pin dependency tmp to 0.2.7
+      hash: c9675bf740acca1f886d03bb7341cfb0e230c113
+      body: |
+        Update tmp
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.6.18
+  title: ""
+  date: 2026-06-24T01:29:45.100Z
+- commits:
     - subject: Pin dependencies
       hash: 88156133b059e170f96cd0eda9adb178c8e4ab06
       body: |
