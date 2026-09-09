@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency flowzonify to v0.4.4
+      hash: da1c9c70621cce263e2e92666a5d1ae6d25bce9f
+      body: |
+        Update flowzonify from 0.0.0 to 0.4.4
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.6.20
+  title: ""
+  date: 2026-09-09T18:55:26.439Z
+- commits:
     - subject: Update to typescript v6
       hash: b20afd3bda5094c22279d68522859f78cce21967
       body: ""
