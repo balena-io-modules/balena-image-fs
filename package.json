@@ -46,7 +46,7 @@
     "mocha": "11.8.0",
     "tmp": "0.2.7",
     "ts-node": "10.9.2",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "ext2fs": "^4.2.4",
