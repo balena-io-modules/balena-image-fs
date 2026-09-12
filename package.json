@@ -43,7 +43,7 @@
     "@types/node": "20.19.43",
     "@types/tmp": "0.2.6",
     "jsdoc-to-markdown": "9.1.3",
-    "mocha": "11.7.6",
+    "mocha": "11.8.0",
     "tmp": "0.2.7",
     "ts-node": "10.9.2",
     "typescript": "6.0.3"
